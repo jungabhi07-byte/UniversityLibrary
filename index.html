@@ -3,286 +3,100 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>KU Library System - Login</title>
-    <link rel="stylesheet" href="style.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="icon" type="image/x-icon" href="https://cdn-icons-png.flaticon.com/512/2232/2232688.png">
+    <title>KU Library System</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            margin: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .container {
+            background: white;
+            border-radius: 15px;
+            padding: 40px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+            max-width: 500px;
+            width: 100%;
+            text-align: center;
+        }
+        h1 {
+            color: #0047AB;
+            margin-bottom: 20px;
+        }
+        .btn {
+            display: inline-block;
+            background: #0047AB;
+            color: white;
+            padding: 15px 30px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: bold;
+            margin-top: 20px;
+            transition: all 0.3s;
+        }
+        .btn:hover {
+            background: #003380;
+            transform: translateY(-2px);
+        }
+        .status {
+            margin-top: 20px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            text-align: left;
+        }
+    </style>
 </head>
-<body class="auth-page">
-    <!-- Loading Screen -->
-    <div id="loadingScreen" class="loading-screen">
-        <div class="loading-content">
-            <div class="spinner"></div>
-            <h3>Initializing KU Library System</h3>
-            <p>Please wait while we connect to the server...</p>
-        </div>
-    </div>
-
-    <!-- Main Login Container -->
-    <div class="login-container" id="loginContainer">
-        <!-- University Header -->
-        <div class="university-header">
-            <div class="logo">
-                <i class="fas fa-university"></i>
-            </div>
-            <div class="university-info">
-                <h1>Kathmandu University</h1>
-                <h2>Digital Library Management System</h2>
-                <p class="tagline">Access Knowledge. Empower Learning.</p>
-            </div>
-        </div>
-
-        <!-- Login Form -->
-        <div class="login-form-container">
-            <div class="form-header">
-                <h3><i class="fas fa-sign-in-alt"></i> Secure Access Portal</h3>
-                <p>Enter your credentials to access library resources</p>
-            </div>
-
-            <form id="loginForm" class="login-form">
-                <!-- Email Field -->
-                <div class="form-group">
-                    <label for="email">
-                        <i class="fas fa-envelope"></i> Institutional Email
-                    </label>
-                    <div class="input-with-icon">
-                        <i class="fas fa-user-circle"></i>
-                        <input type="email" id="email" name="email" 
-                               placeholder="username@kulibrary.edu.np" 
-                               autocomplete="email" required>
-                    </div>
-                    <div class="input-hint">
-                        <i class="fas fa-info-circle"></i> Use your KU institutional email
-                    </div>
-                </div>
-
-                <!-- Password Field -->
-                <div class="form-group">
-                    <label for="password">
-                        <i class="fas fa-lock"></i> Password
-                    </label>
-                    <div class="input-with-icon">
-                        <i class="fas fa-key"></i>
-                        <input type="password" id="password" name="password" 
-                               placeholder="Enter your password" 
-                               autocomplete="current-password" required>
-                        <button type="button" class="password-toggle" id="togglePassword">
-                            <i class="fas fa-eye"></i>
-                        </button>
-                    </div>
-                    <div class="password-strength" id="passwordStrength">
-                        <div class="strength-bar"></div>
-                        <span class="strength-text">Password strength</span>
-                    </div>
-                </div>
-
-                <!-- Remember Me & Forgot Password -->
-                <div class="form-options">
-                    <label class="checkbox-label">
-                        <input type="checkbox" id="rememberMe">
-                        <span class="checkmark"></span>
-                        Remember this device
-                    </label>
-                    <a href="#" class="forgot-password" id="forgotPasswordLink">
-                        <i class="fas fa-question-circle"></i> Forgot Password?
-                    </a>
-                </div>
-
-                <!-- Submit Button -->
-                <button type="submit" class="btn-login" id="loginButton">
-                    <i class="fas fa-sign-in-alt"></i>
-                    <span>Secure Login</span>
-                    <div class="btn-loading" id="loginLoading">
-                        <div class="spinner-small"></div>
-                    </div>
-                </button>
-
-                <!-- Security Notice -->
-                <div class="security-notice">
-                    <i class="fas fa-shield-alt"></i>
-                    <p>This system uses end-to-end encryption. Your credentials are securely transmitted.</p>
-                </div>
-            </form>
-
-            <!-- Role Indicators (Hidden from users) -->
-            <div class="role-indicators">
-                <div class="role-card" data-role="admin">
-                    <i class="fas fa-user-cog"></i>
-                    <span>Administrator Access</span>
-                </div>
-                <div class="role-card" data-role="staff">
-                    <i class="fas fa-user-tie"></i>
-                    <span>Library Staff</span>
-                </div>
-                <div class="role-card" data-role="student">
-                    <i class="fas fa-user-graduate"></i>
-                    <span>Student Access</span>
-                </div>
-            </div>
-
-            <!-- System Status -->
-            <div class="system-status" id="systemStatus">
-                <div class="status-indicator online">
-                    <div class="status-dot"></div>
-                    <span>System: <strong id="statusText">Checking connection...</strong></span>
-                </div>
-                <div class="status-info">
-                    <i class="fas fa-database"></i>
-                    <span>Database: <strong id="dbStatus">Connecting...</strong></span>
-                </div>
-            </div>
-        </div>
-
-        <!-- Footer -->
-        <footer class="login-footer">
-            <p>&copy; 2026 Kathmandu University Library. All rights reserved.</p>
-            <p class="footer-links">
-                <a href="#"><i class="fas fa-question-circle"></i> Help Center</a>
-                <a href="#"><i class="fas fa-shield-alt"></i> Security</a>
-                <a href="#"><i class="fas fa-envelope"></i> Contact IT Support</a>
-            </p>
-            <p class="version">Version 3.0.0 | Last Updated: <span id="currentDate"></span></p>
-        </footer>
-    </div>
-
-    <!-- Error Modal -->
-    <div id="errorModal" class="modal">
-        <div class="modal-content">
-            <div class="modal-header error">
-                <i class="fas fa-exclamation-triangle"></i>
-                <h3>Authentication Error</h3>
-                <button class="modal-close">&times;</button>
-            </div>
-            <div class="modal-body">
-                <p id="errorMessage">An error occurred during authentication.</p>
-                <div class="error-details" id="errorDetails" style="display: none;">
-                    <pre><code id="errorCode"></code></pre>
-                </div>
-                <button class="btn-show-details" id="showErrorDetails">
-                    <i class="fas fa-code"></i> Show Technical Details
-                </button>
-            </div>
-            <div class="modal-footer">
-                <button class="btn-secondary" id="closeError">Close</button>
-                <button class="btn-primary" id="retryLogin">Retry</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Forgot Password Modal -->
-    <div id="forgotPasswordModal" class="modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <i class="fas fa-key"></i>
-                <h3>Password Recovery</h3>
-                <button class="modal-close">&times;</button>
-            </div>
-            <div class="modal-body">
-                <p>Enter your institutional email to receive password reset instructions.</p>
-                <div class="form-group">
-                    <input type="email" id="recoveryEmail" 
-                           placeholder="username@kulibrary.edu.np">
-                </div>
-                <div class="security-warning">
-                    <i class="fas fa-exclamation-circle"></i>
-                    <p>For security reasons, password reset links are only sent to verified institutional emails.</p>
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button class="btn-secondary" id="cancelRecovery">Cancel</button>
-                <button class="btn-primary" id="sendRecovery">Send Reset Link</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Demo Access Modal (Hidden from regular users) -->
-    <div id="demoModal" class="modal">
-        <div class="modal-content">
-            <div class="modal-header warning">
-                <i class="fas fa-vial"></i>
-                <h3>Demo Access</h3>
-                <button class="modal-close">&times;</button>
-            </div>
-            <div class="modal-body">
-                <p class="warning-text">
-                    <i class="fas fa-exclamation-triangle"></i>
-                    <strong>For Demonstration Only</strong><br>
-                    These credentials are for testing purposes.
-                </p>
-                <div class="demo-accounts">
-                    <div class="demo-account admin">
-                        <h4><i class="fas fa-user-cog"></i> Administrator</h4>
-                        <p><strong>Email:</strong> admin@kulibrary.edu.np</p>
-                        <p><strong>Password:</strong> •••••••••••</p>
-                    </div>
-                    <div class="demo-account staff">
-                        <h4><i class="fas fa-user-tie"></i> Library Staff</h4>
-                        <p><strong>Email:</strong> staff@kulibrary.edu.np</p>
-                        <p><strong>Password:</strong> •••••••••••</p>
-                    </div>
-                    <div class="demo-account student">
-                        <h4><i class="fas fa-user-graduate"></i> Student</h4>
-                        <p><strong>Email:</strong> student@kulibrary.edu.np</p>
-                        <p><strong>Password:</strong> •••••••••••</p>
-                    </div>
-                </div>
-                <div class="security-notice">
-                    <i class="fas fa-shield-alt"></i>
-                    <p>In production, these would be actual user credentials stored securely in the database.</p>
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button class="btn-secondary" id="hideDemo">Hide This</button>
-                <button class="btn-primary" id="useDemo">Use Demo Account</button>
-            </div>
-        </div>
-    </div>
-
-    <script src="script.js"></script>
-    <script>
-        // Initialize the system
-        document.addEventListener('DOMContentLoaded', function() {
-            // Set current date
-            document.getElementById('currentDate').textContent = 
-                new Date().toLocaleDateString('en-US', {
-                    year: 'numeric',
-                    month: 'long',
-                    day: 'numeric'
-                });
-            
-            // Initialize authentication system
-            auth.init();
-            
-            // Check system status
-            checkSystemStatus();
-            
-            // Hide loading screen after 2 seconds
-            setTimeout(() => {
-                document.getElementById('loadingScreen').style.opacity = '0';
-                setTimeout(() => {
-                    document.getElementById('loadingScreen').style.display = 'none';
-                }, 500);
-            }, 2000);
-            
-            // Hide demo modal by default (only shown for testing)
-            document.getElementById('demoModal').style.display = 'none';
-        });
+<body>
+    <div class="container">
+        <h1>📚 KU Library Management System</h1>
+        <p>Welcome to Kathmandu University Digital Library</p>
         
-        // Function to check system status
-        async function checkSystemStatus() {
+        <div class="status">
+            <h3>System Status:</h3>
+            <p id="apiStatus">🔍 Checking API connection...</p>
+            <p id="siteStatus">🔍 Checking site configuration...</p>
+        </div>
+        
+        <a href="login.html" class="btn">🚀 Go to Login</a>
+        
+        <div style="margin-top: 30px; font-size: 14px; color: #666;">
+            <p>Domain: budhathokiabhishek.com.np</p>
+            <p>Hosted on GitHub Pages</p>
+        </div>
+    </div>
+    
+    <script>
+        // Check API status
+        async function checkAPI() {
             try {
-                const response = await fetch(API_BASE_URL + '/api/health');
+                const response = await fetch('https://kulibrary-auth.budhathokiabhishek06.workers.dev/api/health');
                 if (response.ok) {
-                    document.getElementById('statusText').textContent = 'Online';
-                    document.getElementById('dbStatus').textContent = 'Connected';
-                    document.getElementById('systemStatus').classList.add('online');
+                    document.getElementById('apiStatus').innerHTML = '✅ API: Connected';
+                    document.getElementById('apiStatus').style.color = 'green';
                 }
-            } catch (error) {
-                document.getElementById('statusText').textContent = 'Offline';
-                document.getElementById('dbStatus').textContent = 'Disconnected';
-                document.getElementById('systemStatus').classList.add('offline');
+            } catch {
+                document.getElementById('apiStatus').innerHTML = '⚠️ API: Check connection';
+                document.getElementById('apiStatus').style.color = 'orange';
             }
         }
+        
+        // Check current URL
+        const currentHost = window.location.hostname;
+        if (currentHost === 'budhathokiabhishek.com.np') {
+            document.getElementById('siteStatus').innerHTML = '✅ Domain: Configured correctly';
+            document.getElementById('siteStatus').style.color = 'green';
+        } else {
+            document.getElementById('siteStatus').innerHTML = `⚠️ Domain: ${currentHost} (Expected: budhathokiabhishek.com.np)`;
+            document.getElementById('siteStatus').style.color = 'orange';
+        }
+        
+        checkAPI();
     </script>
 </body>
 </html>
