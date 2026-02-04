@@ -1,0 +1,26 @@
+{
+  "name": "budhathokiabhishek-library",
+  "version": "1.0.0",
+  "description": "Library Management System for budhathokiabhishek.com.np",
+  "homepage": "https://budhathokiabhishek.com.np",
+  "scripts": {
+    "dev": "live-server --port=8080",
+    "build": "echo 'No build step required for static site'",
+    "deploy": "gh-pages -d .",
+    "test": "echo 'No tests specified'"
+  },
+  "keywords": [
+    "library",
+    "database",
+    "mysql",
+    "cloudflare",
+    "github-pages"
+  ],
+  "author": "Budhathoki Abhishek",
+  "license": "MIT",
+  "devDependencies": {
+    "live-server": "^1.2.2",
+    "gh-pages": "^5.0.0"
+  },
+  "dependencies": {}
+}
