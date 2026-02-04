@@ -1,7 +1,7 @@
 // KU Library Management System - Frontend JavaScript
 // Configuration
-const API_BASE_URL = 'https://kulibrary-auth.budhathokiabhishek06.workers.dev/';
-// Replace YOUR_USERNAME with your Cloudflare username
+// Change this line in frontend/script.js
+const API_BASE_URL = 'https://kulibrary-auth.budhathokiabhishek06.workers.dev';
 
 // Authentication Service
 const auth = {
