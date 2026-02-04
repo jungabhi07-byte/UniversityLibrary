@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KU Library Dashboard</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body { padding-top: 20px; background: #f8f9fa; }
+        .header {
+            background: linear-gradient(135deg, #0047AB 0%, #1E90FF 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+        }
+        .card { margin-bottom: 20px; border-radius: 10px; }
+        .logout-btn { position: fixed; top: 20px; right: 20px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <button class="btn btn-danger logout-btn" onclick="logout()">
+            Logout
+        </button>
+        
+        <div class="header">
+            <h1>📊 KU Library Dashboard</h1>
+            <p id="welcomeMessage">Loading user information...</p>
+        </div>
+        
+        <div class="row">
+            <div class="col-md-4">
+                <div class="card">
+                    <div class="card-body">
+                        <h5>👤 User Profile</h5>
+                        <div id="userProfile">Loading...</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-8">
+                <div class="card">
+                    <div class="card-body">
+                        <h5>📚 Available Books</h5>
+                        <div id="booksList">Loading books...</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="mt-4 text-center text-muted">
+            <p>KU Library System | budhathokiabhishek.com.np</p>
+        </div>
+    </div>
+    
+    <script>
+        // Check if logged in
+        const token = localStorage.getItem('token');
+        const user = JSON.parse(localStorage.getItem('user') || 'null');
+        
+        if (!token || !user) {
+            window.location.href = 'login.html';
+        } else {
+            document.getElementById('welcomeMessage').innerHTML = 
+                `Welcome, <strong>${user.name}</strong>! (${user.role})`;
+            
+            document.getElementById('userProfile').innerHTML = `
+                <p><strong>Email:</strong> ${user.email}</p>
+                <p><strong>Role:</strong> ${user.role}</p>
+                <p><strong>Department:</strong> ${user.department || 'N/A'}</p>
+                <p><strong>ID:</strong> ${user.studentId || user.facultyId || 'N/A'}</p>
+            `;
+            
+            // Load books
+            loadBooks();
+        }
+        
+        async function loadBooks() {
+            try {
+                const response = await fetch('https://kulibrary-auth.budhathokiabhishek06.workers.dev/api/books');
+                const data = await response.json();
+                
+                if (data.books) {
+                    const booksHTML = data.books.map(book => `
+                        <div class="border p-3 mb-2 rounded">
+                            <h6>${book.title}</h6>
+                            <small>By: ${book.authors?.join(', ') || 'Unknown'}</small>
+                            <div class="mt-2">
+                                <span class="badge ${book.availableCopies > 0 ? 'bg-success' : 'bg-danger'}">
+                                    ${book.availableCopies} available
+                                </span>
+                            </div>
+                        </div>
+                    `).join('');
+                    
+                    document.getElementById('booksList').innerHTML = booksHTML;
+                }
+            } catch (error) {
+                document.getElementById('booksList').innerHTML = 
+                    '<div class="alert alert-warning">Could not load books</div>';
+            }
+        }
+        
+        function logout() {
+            localStorage.removeItem('token');
+            localStorage.removeItem('user');
+            window.location.href = 'login.html';
+        }
+    </script>
+</body>
+</html>
