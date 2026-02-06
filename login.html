@@ -3,22 +3,42 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>KU Library Login</title>
+    <title>Login - KU Library System</title>
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="icon" href="ku logo.jpeg" type="image/jpeg">
 </head>
 <body>
     <div class="container">
-        <header class="login-header">
-            <h1><i class="fas fa-book"></i> KU Library Login</h1>
-            <a href="index.html" class="back-home">
-                <i class="fas fa-home"></i> Home
-            </a>
-        </header>
+        <!-- Navigation Header -->
+        <nav class="main-nav">
+            <div class="nav-logo">
+                <img src="ku logo.jpeg" alt="KU Logo" class="logo">
+                <div class="nav-text">
+                    <h1>Kathmandu University</h1>
+                    <p>Digital Library System</p>
+                </div>
+            </div>
+            <div class="nav-links">
+                <a href="index.html" class="nav-link"><i class="fas fa-home"></i> Home</a>
+                <a href="index.html#catalog" class="nav-link"><i class="fas fa-book"></i> Catalog</a>
+                <a href="index.html#services" class="nav-link"><i class="fas fa-concierge-bell"></i> Services</a>
+                <a href="index.html#about" class="nav-link"><i class="fas fa-info-circle"></i> About</a>
+                <a href="#" class="nav-login-btn active">
+                    <i class="fas fa-sign-in-alt"></i> Login
+                </a>
+            </div>
+        </nav>
 
-        <main class="login-main">
+        <!-- Login Section -->
+        <section class="login-section">
             <div class="login-container">
-                <!-- User Type Selector -->
+                <div class="login-header">
+                    <h2>Library Portal Login</h2>
+                    <p>Access your library account using your credentials</p>
+                </div>
+
+                <!-- User Type Selection -->
                 <div class="user-type-selector">
                     <button class="user-type-btn active" data-type="student" onclick="setUserType('student')">
                         <i class="fas fa-user-graduate"></i> Student
@@ -33,108 +53,115 @@
 
                 <!-- Login Form -->
                 <form id="loginForm" class="login-form">
-                    <div class="form-header">
-                        <h2 id="loginTitle">Student Login</h2>
-                        <p id="loginSubtitle">Login with student@ku.edu.np / Student@123</p>
-                    </div>
-
                     <div class="form-group">
                         <label for="username">
-                            <i class="fas fa-user"></i> Email
+                            <i class="fas fa-envelope"></i> Email Address
                         </label>
-                        <input type="text" id="username" name="username" required 
-                               placeholder="student@ku.edu.np" value="student@ku.edu.np">
+                        <input type="email" id="username" name="username" 
+                               placeholder="Enter your university email" required>
                     </div>
 
                     <div class="form-group">
                         <label for="password">
                             <i class="fas fa-lock"></i> Password
                         </label>
-                        <div class="password-container">
-                            <input type="password" id="password" name="password" required 
-                                   placeholder="Student@123" value="Student@123">
-                            <button type="button" class="show-password" id="showPassword">
+                        <div class="password-input">
+                            <input type="password" id="password" name="password" 
+                                   placeholder="Enter your password" required>
+                            <button type="button" id="showPassword" class="show-password-btn">
                                 <i class="fas fa-eye"></i>
                             </button>
                         </div>
                     </div>
 
-                    <button type="submit" class="login-btn" id="loginBtn">
-                        <i class="fas fa-sign-in-alt"></i> Login as Student
+                    <div class="form-options">
+                        <label class="checkbox-label">
+                            <input type="checkbox" name="remember" checked>
+                            <span>Remember me</span>
+                        </label>
+                        <a href="#" class="forgot-password">Forgot Password?</a>
+                    </div>
+
+                    <button type="submit" id="loginBtn" class="login-submit-btn">
+                        <i class="fas fa-sign-in-alt"></i> Login to Library Portal
                     </button>
 
-                    <div class="test-credentials">
-                        <h4><i class="fas fa-vial"></i> Test Credentials</h4>
-                        <div class="credentials-grid">
-                            <div class="credential-card student">
-                                <h5>Student</h5>
-                                <p><strong>Email:</strong> student@ku.edu.np</p>
-                                <p><strong>Password:</strong> Student@123</p>
-                            </div>
-                            <div class="credential-card staff">
-                                <h5>Staff</h5>
-                                <p><strong>Email:</strong> staff@ku.edu.np</p>
-                                <p><strong>Password:</strong> Staff@123</p>
-                            </div>
-                            <div class="credential-card admin">
-                                <h5>Admin</h5>
-                                <p><strong>Email:</strong> admin@ku.edu.np</p>
-                                <p><strong>Password:</strong> Admin@123</p>
-                            </div>
-                        </div>
+                    <div class="login-help">
+                        <p><strong>Demo Credentials:</strong></p>
+                        <ul>
+                            <li><strong>Student:</strong> student@ku.edu.np / Student@123</li>
+                            <li><strong>Staff:</strong> staff@ku.edu.np / Staff@123</li>
+                            <li><strong>Admin:</strong> admin@ku.edu.np / Admin@123</li>
+                        </ul>
                     </div>
 
-                    <div class="form-footer">
-                        <p><a href="index.html"><i class="fas fa-arrow-left"></i> Back to Home</a></p>
+                    <div class="back-to-home">
+                        <a href="index.html" class="back-btn">
+                            <i class="fas fa-arrow-left"></i> Back to Home
+                        </a>
                     </div>
                 </form>
+
+                <!-- Login Info -->
+                <div class="login-info">
+                    <div class="info-card">
+                        <i class="fas fa-shield-alt"></i>
+                        <h4>Secure Login</h4>
+                        <p>Your credentials are encrypted and secure</p>
+                    </div>
+                    <div class="info-card">
+                        <i class="fas fa-clock"></i>
+                        <h4>24/7 Access</h4>
+                        <p>Access library resources anytime, anywhere</p>
+                    </div>
+                    <div class="info-card">
+                        <i class="fas fa-headset"></i>
+                        <h4>Need Help?</h4>
+                        <p>Contact: library@ku.edu.np</p>
+                    </div>
+                </div>
             </div>
-        </main>
+        </section>
+
+        <!-- Footer -->
+        <footer class="main-footer">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <div class="footer-logo-container">
+                        <img src="ku logo.jpeg" alt="KU Logo" class="footer-logo">
+                        <div>
+                            <h4>Kathmandu University</h4>
+                            <p>Central Library</p>
+                        </div>
+                    </div>
+                    <p class="footer-address">
+                        <i class="fas fa-map-marker-alt"></i> Dhulikhel, Nepal
+                    </p>
+                </div>
+                
+                <div class="footer-section">
+                    <h4>Quick Links</h4>
+                    <a href="index.html#catalog"><i class="fas fa-chevron-right"></i> Book Catalog</a>
+                    <a href="index.html#database"><i class="fas fa-chevron-right"></i> Digital Database</a>
+                    <a href="index.html#services"><i class="fas fa-chevron-right"></i> Library Services</a>
+                    <a href="index.html#contact"><i class="fas fa-chevron-right"></i> Contact Us</a>
+                </div>
+                
+                <div class="footer-section">
+                    <h4>Contact Information</h4>
+                    <p><i class="fas fa-phone"></i> +977-11-661399</p>
+                    <p><i class="fas fa-envelope"></i> library@ku.edu.np</p>
+                    <p><i class="fas fa-globe"></i> library.ku.edu.np</p>
+                </div>
+            </div>
+            
+            <div class="footer-bottom">
+                <p>&copy; 2026 Kathmandu University Library Management System. All rights reserved.</p>
+                <p>Designed and developed by <span class="dev-team">Himalayan Dragons</span></p>
+            </div>
+        </footer>
     </div>
 
-    <script>
-        // Set user type function
-        function setUserType(type) {
-            const buttons = document.querySelectorAll('.user-type-btn');
-            buttons.forEach(btn => btn.classList.remove('active'));
-            event.target.classList.add('active');
-            
-            // Update form based on user type
-            const title = document.getElementById('loginTitle');
-            const subtitle = document.getElementById('loginSubtitle');
-            const loginBtn = document.getElementById('loginBtn');
-            
-            const emails = {
-                'student': 'student@ku.edu.np',
-                'staff': 'staff@ku.edu.np',
-                'admin': 'admin@ku.edu.np'
-            };
-            
-            const passwords = {
-                'student': 'Student@123',
-                'staff': 'Staff@123',
-                'admin': 'Admin@123'
-            };
-            
-            const messages = {
-                'student': { title: 'Student Login', subtitle: 'Login with student@ku.edu.np / Student@123' },
-                'staff': { title: 'Staff Login', subtitle: 'Login with staff@ku.edu.np / Staff@123' },
-                'admin': { title: 'Admin Login', subtitle: 'Login with admin@ku.edu.np / Admin@123' }
-            };
-            
-            // Update form
-            title.textContent = messages[type].title;
-            subtitle.textContent = messages[type].subtitle;
-            loginBtn.innerHTML = `<i class="fas fa-sign-in-alt"></i> Login as ${type.charAt(0).toUpperCase() + type.slice(1)}`;
-            
-            // Update input values
-            document.getElementById('username').value = emails[type];
-            document.getElementById('password').value = passwords[type];
-            
-            // Store current user type globally
-            window.currentUserType = type;
-        }
-    </script>
     <script src="script.js"></script>
 </body>
 </html>
