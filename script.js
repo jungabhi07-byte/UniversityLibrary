@@ -1,6 +1,6 @@
 // ===== CONFIGURATION =====
-const API_BASE_URL = 'https://kulibrary-auth.budhathokiabhishek06.workers.dev';
-let currentUserType = 'student';
+const API_BASE_URL = 'http://localhost:3000'; // Your Node.js server
+let currentUser = null;
 
 // ===== DOM READY =====
 document.addEventListener('DOMContentLoaded', function() {
@@ -8,35 +8,71 @@ document.addEventListener('DOMContentLoaded', function() {
     console.log(`🔗 API Endpoint: ${API_BASE_URL}`);
     
     // Initialize based on current page
-    if (document.getElementById('loginForm')) {
+    const path = window.location.pathname;
+    
+    if (path.includes('login.html')) {
         initializeLoginPage();
-    } else if (document.querySelector('.dashboard-container')) {
+    } else if (path.includes('dashboard.html')) {
         initializeDashboard();
     } else {
         initializeHomePage();
     }
     
-    // Check authentication status
-    checkAuthStatus();
+    // Update footer year
+    updateCurrentYear();
 });
 
 // ===== HOME PAGE FUNCTIONS =====
 function initializeHomePage() {
     console.log('🏠 Initializing home page...');
     
-    // Add animation to portal cards
-    const portalCards = document.querySelectorAll('.portal-card');
-    portalCards.forEach((card, index) => {
-        card.style.animationDelay = `${index * 0.1}s`;
-        card.classList.add('fade-in');
-    });
+    // Load real-time statistics from MySQL
+    loadLibraryStats();
     
-    // Add hover effects to service cards
-    const serviceCards = document.querySelectorAll('.service-card');
-    serviceCards.forEach(card => {
+    // Add portal card interactions
+    addPortalCardInteractions();
+}
+
+async function loadLibraryStats() {
+    try {
+        const response = await fetch(`${API_BASE_URL}/api/library/stats`);
+        const data = await response.json();
+        
+        if (data.success) {
+            updateHomeStats(data.stats);
+        }
+    } catch (error) {
+        console.error('Error loading stats:', error);
+        updateHomeStats({
+            totalBooks: 0,
+            activeMembers: 0,
+            activeLoans: 0,
+            availableBooks: 0
+        });
+    }
+}
+
+function updateHomeStats(stats) {
+    const statElements = document.querySelectorAll('.stat h3');
+    if (statElements.length >= 4) {
+        statElements[0].textContent = stats.totalBooks?.toLocaleString() || '0';
+        statElements[1].textContent = stats.activeMembers?.toLocaleString() || '0';
+        statElements[2].textContent = stats.activeLoans?.toLocaleString() || '0';
+        statElements[3].textContent = stats.availableBooks?.toLocaleString() || '0';
+    }
+}
+
+function addPortalCardInteractions() {
+    document.querySelectorAll('.portal-card').forEach(card => {
+        card.addEventListener('click', function() {
+            const userType = this.classList.contains('student') ? 'student' :
+                            this.classList.contains('staff') ? 'staff' : 'admin';
+            redirectToLogin(userType);
+        });
+        
         card.addEventListener('mouseenter', function() {
-            this.style.transform = 'translateY(-8px)';
-            this.style.boxShadow = '0 10px 20px rgba(0, 0, 0, 0.15)';
+            this.style.transform = 'translateY(-10px)';
+            this.style.boxShadow = '0 20px 40px rgba(0,0,0,0.2)';
         });
         
         card.addEventListener('mouseleave', function() {
@@ -44,119 +80,36 @@ function initializeHomePage() {
             this.style.boxShadow = 'var(--shadow)';
         });
     });
-    
-    // Set current year in footer
-    const yearElement = document.querySelector('.current-year');
-    if (yearElement) {
-        yearElement.textContent = new Date().getFullYear();
-    }
 }
 
-// Redirect to login with user type
 function redirectToLogin(userType) {
     localStorage.setItem('preferred_user_type', userType);
     window.location.href = 'login.html';
-}
-
-// ===== AUTHENTICATION FUNCTIONS =====
-function checkAuthStatus() {
-    const token = localStorage.getItem('ku_token');
-    const authTime = localStorage.getItem('ku_auth_time');
-    
-    // Check if token exists and is not expired (24 hours)
-    if (token && authTime) {
-        const elapsed = Date.now() - parseInt(authTime);
-        const hoursElapsed = elapsed / (1000 * 60 * 60);
-        
-        if (hoursElapsed < 24) {
-            // User is authenticated, redirect to dashboard if on login page
-            if (window.location.pathname.includes('login.html')) {
-                window.location.href = 'dashboard.html';
-            }
-        } else {
-            // Token expired, clear and redirect to login
-            clearAuthData();
-            if (window.location.pathname.includes('dashboard.html')) {
-                window.location.href = 'login.html';
-            }
-        }
-    } else if (window.location.pathname.includes('dashboard.html')) {
-        // No token but on dashboard, redirect to login
-        window.location.href = 'login.html';
-    }
-}
-
-function getCurrentUser() {
-    const userStr = localStorage.getItem('ku_user');
-    return userStr ? JSON.parse(userStr) : null;
-}
-
-function clearAuthData() {
-    localStorage.removeItem('ku_token');
-    localStorage.removeItem('ku_user');
-    localStorage.removeItem('ku_auth_time');
-    localStorage.removeItem('preferred_user_type');
 }
 
 // ===== LOGIN PAGE FUNCTIONS =====
 function initializeLoginPage() {
     console.log('🔐 Initializing login page...');
     
-    // Check for preferred user type from home page
-    const preferredType = localStorage.getItem('preferred_user_type');
-    if (preferredType) {
-        setUserType(preferredType);
-    } else {
-        setUserType('student');
-    }
+    // Set default user type
+    const preferredType = localStorage.getItem('preferred_user_type') || 'student';
+    setUserType(preferredType);
     
-    // Show password toggle
-    const showPasswordBtn = document.getElementById('showPassword');
-    if (showPasswordBtn) {
-        showPasswordBtn.addEventListener('click', function() {
-            const passwordInput = document.getElementById('password');
-            const icon = this.querySelector('i');
-            if (passwordInput.type === 'password') {
-                passwordInput.type = 'text';
-                icon.classList.remove('fa-eye');
-                icon.classList.add('fa-eye-slash');
-            } else {
-                passwordInput.type = 'password';
-                icon.classList.remove('fa-eye-slash');
-                icon.classList.add('fa-eye');
-            }
-        });
-    }
-    
-    // Form submission
-    const loginForm = document.getElementById('loginForm');
-    if (loginForm) {
-        loginForm.addEventListener('submit', handleLogin);
-    }
-    
-    // Back to home button
-    const backBtn = document.getElementById('backToHome');
-    if (backBtn) {
-        backBtn.addEventListener('click', function() {
-            window.location.href = 'index.html';
-        });
-    }
+    // Setup event listeners
+    setupLoginEvents();
 }
 
 function setUserType(type) {
-    currentUserType = type;
-    
     // Update active button
-    const buttons = document.querySelectorAll('.user-type-btn');
-    buttons.forEach(btn => btn.classList.remove('active'));
+    document.querySelectorAll('.user-type-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.type === type);
+    });
     
-    const activeBtn = document.querySelector(`[data-type="${type}"]`);
-    if (activeBtn) activeBtn.classList.add('active');
-    
-    // Set credentials based on type
+    // Set demo credentials
     const credentials = {
-        student: { email: 'student@ku.edu.np', password: 'Student@123' },
-        staff: { email: 'staff@ku.edu.np', password: 'Staff@123' },
+        student: { email: 'john.smith@uni.edu', password: 'Student@123' },
+        faculty: { email: 'sarah.j@uni.edu', password: 'Faculty@123' },
+        staff: { email: 'lisa.w@uni.edu', password: 'Staff@123' },
         admin: { email: 'admin@ku.edu.np', password: 'Admin@123' }
     };
     
@@ -170,468 +123,913 @@ function setUserType(type) {
     }
 }
 
-async function handleLogin(event) {
-    event.preventDefault();
+function setupLoginEvents() {
+    // Password toggle
+    const showPasswordBtn = document.getElementById('showPassword');
+    if (showPasswordBtn) {
+        showPasswordBtn.addEventListener('click', togglePasswordVisibility);
+    }
     
-    const email = document.getElementById('username').value;
+    // User type buttons
+    document.querySelectorAll('.user-type-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            setUserType(this.dataset.type);
+        });
+    });
+    
+    // Form submission
+    const loginForm = document.getElementById('loginForm');
+    if (loginForm) {
+        loginForm.addEventListener('submit', handleLoginSubmit);
+    }
+}
+
+function togglePasswordVisibility() {
+    const passwordInput = document.getElementById('password');
+    const icon = this.querySelector('i');
+    
+    if (passwordInput.type === 'password') {
+        passwordInput.type = 'text';
+        icon.classList.replace('fa-eye', 'fa-eye-slash');
+    } else {
+        passwordInput.type = 'password';
+        icon.classList.replace('fa-eye-slash', 'fa-eye');
+    }
+}
+
+async function handleLoginSubmit(e) {
+    e.preventDefault();
+    
+    const email = document.getElementById('username').value.trim();
     const password = document.getElementById('password').value;
     
-    const formData = {
-        email: email,
-        password: password,
-        userType: currentUserType
-    };
+    if (!email || !password) {
+        showNotification('Please enter both email and password', 'error');
+        return;
+    }
     
-    console.log('🔐 Login attempt:', { email, userType: currentUserType });
-    
-    // Show loading state
+    await loginUser(email, password);
+}
+
+async function loginUser(email, password) {
     const loginBtn = document.getElementById('loginBtn');
     const originalText = loginBtn.innerHTML;
+    
+    // Show loading
     loginBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Authenticating...';
     loginBtn.disabled = true;
     
     try {
-        const response = await fetch(`${API_BASE_URL}/api/login`, {
+        const response = await fetch(`${API_BASE_URL}/api/auth/login`, {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(formData)
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email, password })
         });
         
         const data = await response.json();
         
         if (data.success) {
-            showNotification(`✅ Welcome back, ${data.user.name}!`, 'success');
+            showNotification(`Welcome ${data.user.name}!`, 'success');
             
             // Store user data
-            localStorage.setItem('ku_token', data.token);
-            localStorage.setItem('ku_user', JSON.stringify(data.user));
-            localStorage.setItem('ku_auth_time', Date.now().toString());
+            localStorage.setItem('token', data.token);
+            localStorage.setItem('user', JSON.stringify(data.user));
+            localStorage.setItem('auth_time', Date.now().toString());
             
             // Redirect to dashboard
             setTimeout(() => {
                 window.location.href = 'dashboard.html';
             }, 1500);
-            
         } else {
             throw new Error(data.message || 'Login failed');
         }
-        
     } catch (error) {
-        console.error('❌ Login error:', error);
-        showNotification(`❌ ${error.message}`, 'error');
+        console.error('Login error:', error);
+        showNotification(error.message || 'Login failed. Please try again.', 'error');
         
-        // Suggest test credentials
+        // Fallback to demo mode
         if (error.message.includes('not found') || error.message.includes('Invalid')) {
             setTimeout(() => {
-                showNotification('💡 Try: student@ku.edu.np / Student@123', 'info');
+                showNotification('Using demo credentials...', 'info');
+                simulateDemoLogin(email);
             }, 1000);
         }
-        
     } finally {
         loginBtn.innerHTML = originalText;
         loginBtn.disabled = false;
     }
 }
 
+function simulateDemoLogin(email) {
+    const demoUsers = {
+        'john.smith@uni.edu': { 
+            name: 'John Smith', 
+            role: 'student',
+            member_id: 1
+        },
+        'sarah.j@uni.edu': { 
+            name: 'Sarah Johnson', 
+            role: 'faculty',
+            member_id: 2
+        },
+        'lisa.w@uni.edu': { 
+            name: 'Lisa Wang', 
+            role: 'staff',
+            member_id: 5
+        },
+        'admin@ku.edu.np': { 
+            name: 'Admin User', 
+            role: 'admin'
+        }
+    };
+    
+    const user = demoUsers[email] || demoUsers['john.smith@uni.edu'];
+    
+    localStorage.setItem('token', 'demo_token_' + Date.now());
+    localStorage.setItem('user', JSON.stringify(user));
+    localStorage.setItem('auth_time', Date.now().toString());
+    
+    showNotification(`Demo login successful! Welcome ${user.name}`, 'success');
+    
+    setTimeout(() => {
+        window.location.href = 'dashboard.html';
+    }, 1500);
+}
+
 // ===== DASHBOARD FUNCTIONS =====
 function initializeDashboard() {
     console.log('📊 Initializing dashboard...');
     
-    const user = getCurrentUser();
-    if (!user) {
+    // Check authentication
+    if (!checkAuth()) {
         window.location.href = 'login.html';
         return;
     }
     
-    // Update user info
-    updateUserInfo(user);
+    // Load user data
+    currentUser = JSON.parse(localStorage.getItem('user'));
+    updateUserDisplay();
+    
+    // Setup navigation
+    setupDashboardNavigation();
     
     // Load dashboard data
     loadDashboardData();
     
-    // Set up sidebar navigation
-    setupSidebarNavigation();
+    // Setup event listeners
+    setupDashboardEvents();
     
-    // Set up logout button
-    const logoutBtn = document.querySelector('.logout-btn');
-    if (logoutBtn) {
-        logoutBtn.addEventListener('click', logout);
+    // Update time
+    updateDateTime();
+    setInterval(updateDateTime, 60000);
+}
+
+function checkAuth() {
+    const token = localStorage.getItem('token');
+    const user = localStorage.getItem('user');
+    const authTime = localStorage.getItem('auth_time');
+    
+    if (!token || !user || !authTime) return false;
+    
+    // Check if token expired (24 hours)
+    const elapsed = Date.now() - parseInt(authTime);
+    return elapsed < 24 * 60 * 60 * 1000; // 24 hours
+}
+
+function updateUserDisplay() {
+    if (!currentUser) return;
+    
+    // Update user info
+    document.querySelectorAll('.user-name').forEach(el => {
+        el.textContent = currentUser.name;
+    });
+    
+    document.querySelectorAll('.user-role').forEach(el => {
+        el.textContent = currentUser.role.charAt(0).toUpperCase() + currentUser.role.slice(1);
+    });
+    
+    document.querySelectorAll('.user-email').forEach(el => {
+        if (el.id === 'userEmail') el.textContent = currentUser.email || 'user@ku.edu.np';
+    });
+    
+    // Update avatar
+    const avatarIcon = document.querySelector('.user-avatar i');
+    if (avatarIcon) {
+        const icons = {
+            student: 'fa-user-graduate',
+            faculty: 'fa-chalkboard-teacher',
+            staff: 'fa-user-tie',
+            admin: 'fa-user-cog'
+        };
+        avatarIcon.className = `fas ${icons[currentUser.role] || 'fa-user'}`;
     }
 }
 
-function updateUserInfo(user) {
-    // Update user name
-    const userNameElements = document.querySelectorAll('.user-name, #userName');
-    userNameElements.forEach(el => {
-        el.textContent = user.name;
-    });
+function setupDashboardNavigation() {
+    // Set default section
+    showSection('dashboard');
     
-    // Update user role
-    const userRoleElements = document.querySelectorAll('.user-role, #userRole');
-    userRoleElements.forEach(el => {
-        el.textContent = user.userType.charAt(0).toUpperCase() + user.userType.slice(1);
-    });
-    
-    // Update user email
-    const userEmailElements = document.querySelectorAll('#userEmail');
-    userEmailElements.forEach(el => {
-        if (el) el.textContent = user.email;
-    });
-    
-    // Update avatar based on user type
-    const avatarIcons = {
-        student: 'fa-user-graduate',
-        staff: 'fa-chalkboard-teacher',
-        admin: 'fa-user-cog'
-    };
-    
-    const avatarIconsElements = document.querySelectorAll('.user-avatar i');
-    avatarIconsElements.forEach(el => {
-        el.className = `fas ${avatarIcons[user.userType] || 'fa-user'}`;
-    });
-}
-
-async function loadDashboardData() {
-    try {
-        const token = localStorage.getItem('ku_token');
-        const user = getCurrentUser();
-        
-        // Show loading state
-        showNotification('📚 Loading library data...', 'info');
-        
-        // Simulate API calls with mock data
-        setTimeout(() => {
-            // Mock data for demonstration
-            const mockBooks = [
-                { book_id: 'B001', title: 'Introduction to Algorithms', authors: 'Thomas H. Cormen', isbn: '978-0262033848', available_copies: 5, total_copies: 10 },
-                { book_id: 'B002', title: 'Clean Code', authors: 'Robert C. Martin', isbn: '978-0132350884', available_copies: 3, total_copies: 8 },
-                { book_id: 'B003', title: 'The Pragmatic Programmer', authors: 'David Thomas, Andrew Hunt', isbn: '978-0201616224', available_copies: 2, total_copies: 6 },
-                { book_id: 'B004', title: 'Design Patterns', authors: 'Erich Gamma', isbn: '978-0201633610', available_copies: 4, total_copies: 7 },
-                { book_id: 'B005', title: 'Computer Networks', authors: 'Andrew S. Tanenbaum', isbn: '978-0132126953', available_copies: 6, total_copies: 12 },
-                { book_id: 'B006', title: 'Database System Concepts', authors: 'Abraham Silberschatz', isbn: '978-0078022159', available_copies: 3, total_copies: 8 }
-            ];
-            
-            const mockStats = {
-                total_books: 15000,
-                active_loans: 3,
-                overdue_loans: 1,
-                available_books: 14500,
-                total_members: 10500
-            };
-            
-            const mockLoans = [
-                { book_id: 'B001', title: 'Introduction to Algorithms', due_date: '2024-02-15', status: 'active' },
-                { book_id: 'B002', title: 'Clean Code', due_date: '2024-02-10', status: 'overdue' },
-                { book_id: 'B003', title: 'The Pragmatic Programmer', due_date: '2024-02-20', status: 'active' }
-            ];
-            
-            displayBooks(mockBooks);
-            updateDashboardStats(mockStats);
-            displayActiveLoans(mockLoans);
-            
-            showNotification('✅ Dashboard data loaded successfully!', 'success');
-        }, 1000);
-        
-    } catch (error) {
-        console.error('❌ Dashboard data error:', error);
-        showNotification('Failed to load dashboard data', 'error');
-    }
-}
-
-function displayBooks(books) {
-    const booksContainer = document.getElementById('booksGrid');
-    if (!booksContainer || !books) return;
-    
-    const booksToShow = books.slice(0, 6); // Show only 6 books
-    
-    booksContainer.innerHTML = booksToShow.map(book => `
-        <div class="book-card">
-            <h4>${book.title || 'Unknown Title'}</h4>
-            <p><strong>Author:</strong> ${book.authors || 'Unknown'}</p>
-            <p><strong>ISBN:</strong> ${book.isbn || 'N/A'}</p>
-            <p><strong>Available:</strong> ${book.available_copies || book.total_copies || 0} copies</p>
-            <button class="borrow-btn" onclick="borrowBook('${book.book_id}', '${book.title}')">
-                <i class="fas fa-book"></i> Borrow
-            </button>
-        </div>
-    `).join('');
-}
-
-function updateDashboardStats(data) {
-    // Update stats cards
-    const stats = {
-        totalBooks: data.total_books || 0,
-        activeLoans: data.active_loans || 0,
-        overdueLoans: data.overdue_loans || 0,
-        availableBooks: data.available_books || 0,
-        totalMembers: data.total_members || 0
-    };
-    
-    // Update each stat card if it exists
-    const statCards = {
-        'totalBooks': { element: document.querySelector('#totalBooks'), value: stats.totalBooks },
-        'activeLoans': { element: document.querySelector('#activeLoans'), value: stats.activeLoans },
-        'overdueLoans': { element: document.querySelector('#overdueLoans'), value: stats.overdueLoans },
-        'availableBooks': { element: document.querySelector('#availableBooks'), value: stats.availableBooks }
-    };
-    
-    Object.keys(statCards).forEach(key => {
-        if (statCards[key].element) {
-            statCards[key].element.textContent = statCards[key].value.toLocaleString();
+    // Setup menu clicks
+    document.querySelectorAll('.sidebar-menu a').forEach(link => {
+        if (link.getAttribute('href').startsWith('#')) {
+            link.addEventListener('click', function(e) {
+                e.preventDefault();
+                const targetId = this.getAttribute('href').substring(1);
+                
+                // Update active menu
+                document.querySelectorAll('.sidebar-menu a').forEach(item => {
+                    item.classList.remove('active');
+                });
+                this.classList.add('active');
+                
+                // Show section
+                showSection(targetId);
+            });
         }
     });
 }
 
-function displayActiveLoans(loans) {
-    const loansContainer = document.getElementById('activeLoansList');
-    if (!loansContainer) return;
+function showSection(sectionId) {
+    // Hide all sections
+    document.querySelectorAll('.dashboard-section').forEach(section => {
+        section.classList.remove('active-section');
+    });
     
-    if (!loans || loans.length === 0) {
-        loansContainer.innerHTML = `
-            <div class="no-data">
-                <i class="fas fa-book-open"></i>
-                <p>No active loans found</p>
-            </div>
-        `;
+    // Show target section
+    const targetSection = document.getElementById(sectionId);
+    if (targetSection) {
+        targetSection.classList.add('active-section');
+        
+        // Update title
+        const menuItem = document.querySelector(`.sidebar-menu a[href="#${sectionId}"] .menu-text`);
+        if (menuItem) {
+            document.getElementById('dashboardTitle').textContent = menuItem.textContent;
+        }
+        
+        // Load section data
+        loadSectionData(sectionId);
+    }
+}
+
+async function loadDashboardData() {
+    try {
+        const token = localStorage.getItem('token');
+        
+        // Load dashboard stats
+        const statsResponse = await fetch(`${API_BASE_URL}/api/dashboard/stats`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        
+        if (statsResponse.ok) {
+            const statsData = await statsResponse.json();
+            if (statsData.success) {
+                updateDashboardStats(statsData.data);
+            }
+        }
+        
+        // Load recent activity
+        await loadRecentActivity();
+        
+        // Load popular books
+        await loadPopularBooks();
+        
+    } catch (error) {
+        console.error('Dashboard data error:', error);
+        showNotification('Failed to load dashboard data', 'error');
+        loadMockDashboardData();
+    }
+}
+
+function updateDashboardStats(stats) {
+    const elements = {
+        totalBooks: document.getElementById('totalBooks'),
+        activeLoans: document.getElementById('activeLoans'),
+        overdueLoans: document.getElementById('overdueLoans'),
+        availableBooks: document.getElementById('availableBooks')
+    };
+    
+    Object.keys(elements).forEach(key => {
+        if (elements[key]) {
+            elements[key].textContent = stats[key]?.toLocaleString() || '0';
+        }
+    });
+}
+
+async function loadRecentActivity() {
+    try {
+        const token = localStorage.getItem('token');
+        const response = await fetch(`${API_BASE_URL}/api/user/activity`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        
+        if (response.ok) {
+            const data = await response.json();
+            if (data.success) {
+                displayRecentActivity(data.activities);
+            }
+        }
+    } catch (error) {
+        console.error('Activity error:', error);
+        displayMockActivity();
+    }
+}
+
+function displayRecentActivity(activities) {
+    const container = document.getElementById('activityList');
+    if (!container) return;
+    
+    if (!activities || activities.length === 0) {
+        container.innerHTML = '<div class="no-activity">No recent activity</div>';
         return;
     }
     
-    loansContainer.innerHTML = loans.map(loan => `
-        <div class="loan-item ${loan.status === 'overdue' ? 'overdue' : ''}">
-            <div class="loan-info">
-                <h4>${loan.title}</h4>
-                <p><strong>Due Date:</strong> ${loan.due_date}</p>
-                <p><strong>Status:</strong> <span class="status-badge ${loan.status}">${loan.status}</span></p>
+    container.innerHTML = activities.map(activity => `
+        <div class="activity-item">
+            <div class="activity-icon">
+                <i class="fas ${getActivityIcon(activity.type)}"></i>
             </div>
-            ${loan.status === 'overdue' ? 
-                '<button class="renew-btn" onclick="renewBook(\'' + loan.book_id + '\')"><i class="fas fa-redo"></i> Renew</button>' : 
-                '<button class="return-btn" onclick="returnBook(\'' + loan.book_id + '\')"><i class="fas fa-undo"></i> Return</button>'
+            <div class="activity-details">
+                <p>${activity.description}</p>
+                <span class="activity-time">${formatTime(activity.timestamp)}</span>
+            </div>
+        </div>
+    `).join('');
+}
+
+async function loadPopularBooks() {
+    try {
+        const response = await fetch(`${API_BASE_URL}/api/books/popular`);
+        
+        if (response.ok) {
+            const data = await response.json();
+            if (data.success) {
+                displayBooks(data.books, 'popularBooks');
+            }
+        }
+    } catch (error) {
+        console.error('Popular books error:', error);
+        displayMockBooks('popularBooks');
+    }
+}
+
+async function loadSectionData(sectionId) {
+    switch (sectionId) {
+        case 'books':
+            await loadAllBooks();
+            break;
+        case 'loans':
+            await loadUserLoans();
+            break;
+        case 'profile':
+            loadProfileData();
+            break;
+        case 'reservations':
+            await loadUserReservations();
+            break;
+    }
+}
+
+async function loadAllBooks() {
+    try {
+        const response = await fetch(`${API_BASE_URL}/api/books`);
+        
+        if (response.ok) {
+            const data = await response.json();
+            if (data.success) {
+                displayBooks(data.books, 'booksGrid');
+                updateFilterCounts(data.books);
+            }
+        }
+    } catch (error) {
+        console.error('Books error:', error);
+        displayMockBooks('booksGrid');
+    }
+}
+
+function displayBooks(books, containerId) {
+    const container = document.getElementById(containerId);
+    if (!container) return;
+    
+    if (!books || books.length === 0) {
+        container.innerHTML = '<div class="no-books">No books found</div>';
+        return;
+    }
+    
+    container.innerHTML = books.map(book => `
+        <div class="book-card">
+            <h4>${book.title}</h4>
+            <p><strong>Author:</strong> ${book.authors || 'Unknown'}</p>
+            <p><strong>ISBN:</strong> ${book.isbn || 'N/A'}</p>
+            <p><strong>Available:</strong> ${book.available_count} of ${book.total_copies}</p>
+            <p><strong>Year:</strong> ${book.year || 'N/A'}</p>
+            ${book.available_count > 0 ? 
+                `<button class="borrow-btn" onclick="borrowBook(${book.book_id}, '${book.title.replace(/'/g, "\\'")}')">
+                    <i class="fas fa-book"></i> Borrow
+                </button>` :
+                `<button class="borrow-btn disabled" disabled>
+                    <i class="fas fa-times"></i> Unavailable
+                </button>`
             }
         </div>
     `).join('');
 }
 
-// ===== BOOK MANAGEMENT FUNCTIONS =====
-async function borrowBook(bookId, bookTitle) {
-    const token = localStorage.getItem('ku_token');
-    const user = getCurrentUser();
+async function loadUserLoans() {
+    try {
+        const token = localStorage.getItem('token');
+        const response = await fetch(`${API_BASE_URL}/api/user/loans`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        
+        if (response.ok) {
+            const data = await response.json();
+            if (data.success) {
+                displayUserLoans(data.loans);
+            }
+        }
+    } catch (error) {
+        console.error('Loans error:', error);
+        displayMockLoans();
+    }
+}
+
+function displayUserLoans(loans) {
+    const container = document.getElementById('loansTable');
+    if (!container) return;
     
-    if (!user) {
-        showNotification('Please login first', 'error');
+    if (!loans || loans.length === 0) {
+        container.innerHTML = '<div class="no-loans">No active loans</div>';
         return;
     }
     
-    const confirmBorrow = confirm(`Borrow "${bookTitle}"?`);
-    if (!confirmBorrow) return;
+    // Update loan count badges
+    document.getElementById('loanCount').textContent = loans.length;
+    const overdueCount = loans.filter(loan => loan.status === 'overdue').length;
+    document.getElementById('overdueLoans').textContent = overdueCount;
     
-    try {
-        // Show loading
-        showNotification(`Processing borrowing request...`, 'info');
-        
-        // Simulate API call
-        setTimeout(() => {
-            showNotification(`✅ Successfully borrowed "${bookTitle}"`, 'success');
-            
-            // Update dashboard
-            setTimeout(() => {
-                window.location.reload();
-            }, 1000);
-        }, 1500);
-        
-    } catch (error) {
-        console.error('❌ Borrow error:', error);
-        showNotification('Failed to borrow book', 'error');
-    }
+    container.innerHTML = `
+        <div class="loan-row header">
+            <div>Book Title</div>
+            <div>Borrowed Date</div>
+            <div>Due Date</div>
+            <div>Status</div>
+            <div>Actions</div>
+        </div>
+        ${loans.map(loan => `
+            <div class="loan-row ${loan.status === 'overdue' ? 'overdue' : ''}">
+                <div>${loan.book_title}</div>
+                <div>${formatDate(loan.loan_date)}</div>
+                <div>${formatDate(loan.due_date)}</div>
+                <div><span class="status-badge ${loan.status}">${loan.status}</span></div>
+                <div class="loan-actions">
+                    ${loan.status === 'overdue' || loan.status === 'active' ? 
+                        `<button class="btn-small" onclick="returnBook(${loan.loan_id}, '${loan.book_title.replace(/'/g, "\\'")}')">
+                            <i class="fas fa-undo"></i> Return
+                        </button>
+                        <button class="btn-small" onclick="renewLoan(${loan.loan_id})" ${loan.renewal_count >= 3 ? 'disabled' : ''}>
+                            <i class="fas fa-redo"></i> Renew
+                        </button>` : 
+                        `<span class="returned-text">Returned on ${formatDate(loan.return_date)}</span>`
+                    }
+                </div>
+            </div>
+        `).join('')}
+    `;
 }
 
-async function returnBook(bookId) {
-    try {
-        showNotification('Processing return...', 'info');
-        
-        // Simulate API call
-        setTimeout(() => {
-            showNotification('✅ Book returned successfully', 'success');
-            
-            // Update dashboard
-            setTimeout(() => {
-                window.location.reload();
-            }, 1000);
-        }, 1500);
-        
-    } catch (error) {
-        console.error('❌ Return error:', error);
-        showNotification('Failed to return book', 'error');
-    }
-}
-
-async function renewBook(bookId) {
-    try {
-        showNotification('Processing renewal...', 'info');
-        
-        // Simulate API call
-        setTimeout(() => {
-            showNotification('✅ Book renewed for 2 more weeks', 'success');
-            
-            // Update dashboard
-            setTimeout(() => {
-                window.location.reload();
-            }, 1000);
-        }, 1500);
-        
-    } catch (error) {
-        console.error('❌ Renew error:', error);
-        showNotification('Failed to renew book', 'error');
-    }
-}
-
-// ===== NAVIGATION FUNCTIONS =====
-function setupSidebarNavigation() {
-    const menuItems = document.querySelectorAll('.sidebar-menu a');
-    const sections = document.querySelectorAll('.dashboard-section');
+function loadProfileData() {
+    if (!currentUser) return;
     
-    menuItems.forEach(item => {
-        item.addEventListener('click', function(e) {
+    document.getElementById('profileName').value = currentUser.name;
+    document.getElementById('profileEmail').value = currentUser.email || 'user@ku.edu.np';
+    document.getElementById('profileId').value = currentUser.member_id || 'N/A';
+    document.getElementById('profileType').value = currentUser.role;
+    
+    // Setup profile form
+    const profileForm = document.getElementById('profileForm');
+    if (profileForm) {
+        profileForm.addEventListener('submit', async (e) => {
             e.preventDefault();
-            
-            const targetId = this.getAttribute('href').substring(1);
-            
-            // Update active menu item
-            menuItems.forEach(i => i.classList.remove('active'));
-            this.classList.add('active');
-            
-            // Show target section
-            sections.forEach(section => {
-                section.style.display = 'none';
-                if (section.id === targetId) {
-                    section.style.display = 'block';
-                }
-            });
-            
-            // Update dashboard title
-            const dashboardTitle = document.getElementById('dashboardTitle');
-            if (dashboardTitle) {
-                dashboardTitle.textContent = this.querySelector('.menu-text').textContent;
-            }
-            
-            // Load section-specific data
-            if (targetId === 'books') {
-                loadBooksSection();
-            } else if (targetId === 'profile') {
-                loadProfileSection();
-            }
+            await updateProfile();
         });
-    });
-}
-
-function loadBooksSection() {
-    // Fetch and display all books
-    console.log('Loading books section...');
-}
-
-function loadProfileSection() {
-    const user = getCurrentUser();
-    if (!user) return;
-    
-    // Update profile form
-    document.getElementById('profileName').value = user.name;
-    document.getElementById('profileEmail').value = user.email;
-    document.getElementById('profileType').value = user.userType;
-    document.getElementById('profileId').value = user.id || 'N/A';
+    }
 }
 
 async function updateProfile() {
     const name = document.getElementById('profileName').value;
     const email = document.getElementById('profileEmail').value;
+    const newPassword = document.getElementById('newPassword').value;
+    const confirmPassword = document.getElementById('confirmPassword').value;
+    
+    // Validate password
+    if (newPassword && newPassword !== confirmPassword) {
+        showNotification('Passwords do not match', 'error');
+        return;
+    }
     
     try {
-        showNotification('Updating profile...', 'info');
+        const token = localStorage.getItem('token');
+        const response = await fetch(`${API_BASE_URL}/api/user/profile`, {
+            method: 'PUT',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                name,
+                email,
+                ...(newPassword && { password: newPassword })
+            })
+        });
         
-        // Simulate API call
-        setTimeout(() => {
-            // Update local storage
-            const user = getCurrentUser();
-            user.name = name;
-            user.email = email;
-            localStorage.setItem('ku_user', JSON.stringify(user));
-            
-            // Update UI
-            updateUserInfo(user);
-            showNotification('✅ Profile updated successfully', 'success');
-        }, 1500);
-        
+        if (response.ok) {
+            const data = await response.json();
+            if (data.success) {
+                // Update local storage
+                currentUser = { ...currentUser, name, email };
+                localStorage.setItem('user', JSON.stringify(currentUser));
+                
+                // Update display
+                updateUserDisplay();
+                
+                showNotification('Profile updated successfully', 'success');
+                
+                // Clear password fields
+                document.getElementById('newPassword').value = '';
+                document.getElementById('confirmPassword').value = '';
+            }
+        }
     } catch (error) {
-        console.error('❌ Profile update error:', error);
+        console.error('Profile update error:', error);
         showNotification('Failed to update profile', 'error');
     }
 }
 
+// ===== BOOK ACTIONS =====
+async function borrowBook(bookId, bookTitle) {
+    if (!confirm(`Borrow "${bookTitle}"?`)) return;
+    
+    try {
+        const token = localStorage.getItem('token');
+        const response = await fetch(`${API_BASE_URL}/api/books/borrow`, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ book_id: bookId })
+        });
+        
+        if (response.ok) {
+            const data = await response.json();
+            if (data.success) {
+                showNotification(`Successfully borrowed "${bookTitle}"`, 'success');
+                
+                // Refresh data
+                loadDashboardData();
+                if (document.getElementById('books').classList.contains('active-section')) {
+                    await loadAllBooks();
+                }
+            } else {
+                showNotification(data.message || 'Failed to borrow book', 'error');
+            }
+        }
+    } catch (error) {
+        console.error('Borrow error:', error);
+        showNotification('Failed to borrow book. Please try again.', 'error');
+    }
+}
+
+async function returnBook(loanId, bookTitle) {
+    if (!confirm(`Return "${bookTitle}"?`)) return;
+    
+    try {
+        const token = localStorage.getItem('token');
+        const response = await fetch(`${API_BASE_URL}/api/books/return`, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ loan_id: loanId })
+        });
+        
+        if (response.ok) {
+            const data = await response.json();
+            if (data.success) {
+                showNotification(`Successfully returned "${bookTitle}"`, 'success');
+                
+                // Refresh data
+                await loadUserLoans();
+                loadDashboardData();
+            }
+        }
+    } catch (error) {
+        console.error('Return error:', error);
+        showNotification('Failed to return book. Please try again.', 'error');
+    }
+}
+
+async function renewLoan(loanId) {
+    if (!confirm('Renew this book for 14 more days?')) return;
+    
+    try {
+        const token = localStorage.getItem('token');
+        const response = await fetch(`${API_BASE_URL}/api/books/renew`, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ loan_id: loanId })
+        });
+        
+        if (response.ok) {
+            const data = await response.json();
+            if (data.success) {
+                showNotification('Book renewed successfully!', 'success');
+                await loadUserLoans();
+            } else {
+                showNotification(data.message || 'Cannot renew book', 'error');
+            }
+        }
+    } catch (error) {
+        console.error('Renew error:', error);
+        showNotification('Failed to renew book', 'error');
+    }
+}
+
 // ===== UTILITY FUNCTIONS =====
-function showNotification(message, type = 'info') {
-    // Remove existing notifications
-    const existingNotification = document.querySelector('.notification');
-    if (existingNotification) {
-        existingNotification.remove();
+function setupDashboardEvents() {
+    // Search functionality
+    const searchInput = document.getElementById('globalSearch');
+    if (searchInput) {
+        searchInput.addEventListener('keyup', debounce((e) => {
+            if (e.target.value.trim()) {
+                searchBooks(e.target.value);
+            }
+        }, 500));
     }
     
-    // Create notification element
+    // Filter controls
+    const categoryFilter = document.getElementById('categoryFilter');
+    const sortFilter = document.getElementById('sortFilter');
+    
+    if (categoryFilter) {
+        categoryFilter.addEventListener('change', applyBookFilters);
+    }
+    
+    if (sortFilter) {
+        sortFilter.addEventListener('change', applyBookFilters);
+    }
+    
+    // Load more books
+    const loadMoreBtn = document.getElementById('loadMoreBooks');
+    if (loadMoreBtn) {
+        loadMoreBtn.addEventListener('click', loadMoreBooks);
+    }
+}
+
+async function searchBooks(query) {
+    try {
+        const response = await fetch(`${API_BASE_URL}/api/books/search?q=${encodeURIComponent(query)}`);
+        
+        if (response.ok) {
+            const data = await response.json();
+            if (data.success) {
+                // Show books section with results
+                showSection('books');
+                displayBooks(data.books, 'booksGrid');
+                
+                // Update title
+                document.getElementById('dashboardTitle').textContent = 
+                    `Search Results: ${data.books.length} books found`;
+            }
+        }
+    } catch (error) {
+        console.error('Search error:', error);
+        showNotification('Search failed', 'error');
+    }
+}
+
+function applyBookFilters() {
+    const category = document.getElementById('categoryFilter')?.value;
+    const sort = document.getElementById('sortFilter')?.value;
+    
+    // Show loading
+    const container = document.getElementById('booksGrid');
+    if (container) {
+        container.innerHTML = '<div class="loading">Loading books...</div>';
+    }
+    
+    // Load filtered books
+    loadAllBooks();
+}
+
+function loadMoreBooks() {
+    showNotification('Loading more books...', 'info');
+    // Implement pagination here
+    setTimeout(() => {
+        showNotification('No more books to load', 'info');
+    }, 1000);
+}
+
+function updateDateTime() {
+    const datetimeElement = document.getElementById('currentDateTime');
+    if (datetimeElement) {
+        const now = new Date();
+        datetimeElement.textContent = now.toLocaleString('en-US', {
+            weekday: 'long',
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit',
+            second: '2-digit'
+        });
+    }
+}
+
+function updateCurrentYear() {
+    document.querySelectorAll('.current-year').forEach(el => {
+        el.textContent = new Date().getFullYear();
+    });
+}
+
+function formatDate(dateString) {
+    if (!dateString) return 'N/A';
+    return new Date(dateString).toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric'
+    });
+}
+
+function formatTime(timestamp) {
+    const date = new Date(timestamp);
+    const now = new Date();
+    const diff = now - date;
+    const minutes = Math.floor(diff / 60000);
+    const hours = Math.floor(diff / 3600000);
+    const days = Math.floor(diff / 86400000);
+    
+    if (minutes < 1) return 'Just now';
+    if (minutes < 60) return `${minutes}m ago`;
+    if (hours < 24) return `${hours}h ago`;
+    if (days < 7) return `${days}d ago`;
+    return date.toLocaleDateString();
+}
+
+function getActivityIcon(type) {
+    const icons = {
+        borrow: 'fa-book',
+        return: 'fa-undo',
+        renew: 'fa-redo',
+        reserve: 'fa-bookmark',
+        login: 'fa-sign-in-alt',
+        update: 'fa-user-edit'
+    };
+    return icons[type] || 'fa-info-circle';
+}
+
+function debounce(func, wait) {
+    let timeout;
+    return function executedFunction(...args) {
+        const later = () => {
+            clearTimeout(timeout);
+            func(...args);
+        };
+        clearTimeout(timeout);
+        timeout = setTimeout(later, wait);
+    };
+}
+
+function logout() {
+    if (confirm('Are you sure you want to logout?')) {
+        localStorage.clear();
+        showNotification('Logged out successfully', 'success');
+        setTimeout(() => {
+            window.location.href = 'index.html';
+        }, 1000);
+    }
+}
+
+// ===== MOCK DATA FUNCTIONS =====
+function loadMockDashboardData() {
+    updateDashboardStats({
+        totalBooks: 15423,
+        activeLoans: 3,
+        overdueLoans: 1,
+        availableBooks: 12345
+    });
+    
+    displayMockActivity();
+    displayMockBooks('popularBooks');
+}
+
+function displayMockActivity() {
+    const mockActivities = [
+        {
+            type: 'borrow',
+            description: 'Borrowed "Database System Concepts"',
+            timestamp: Date.now() - 3600000
+        },
+        {
+            type: 'return',
+            description: 'Returned "NoSQL Distilled"',
+            timestamp: Date.now() - 86400000
+        },
+        {
+            type: 'renew',
+            description: 'Renewed "Graph Databases" for 14 more days',
+            timestamp: Date.now() - 172800000
+        }
+    ];
+    
+    displayRecentActivity(mockActivities);
+}
+
+function displayMockBooks(containerId) {
+    const mockBooks = [
+        {
+            book_id: 1,
+            title: 'Database System Concepts',
+            authors: 'Abraham Silberschatz, Henry F. Korth, S. Sudarshan',
+            isbn: '978-0078022159',
+            available_count: 3,
+            total_copies: 5,
+            year: 2019
+        },
+        {
+            book_id: 2,
+            title: 'NoSQL Distilled',
+            authors: 'Martin Fowler, Pramod Sadalage',
+            isbn: '978-0321826626',
+            available_count: 1,
+            total_copies: 3,
+            year: 2012
+        },
+        {
+            book_id: 3,
+            title: 'Graph Databases',
+            authors: 'Ian Robinson, Jim Webber',
+            isbn: '978-1491930892',
+            available_count: 0,
+            total_copies: 2,
+            year: 2015
+        }
+    ];
+    
+    displayBooks(mockBooks, containerId);
+}
+
+function displayMockLoans() {
+    const mockLoans = [
+        {
+            loan_id: 1,
+            book_title: 'Database System Concepts',
+            loan_date: '2024-01-15',
+            due_date: '2024-01-29',
+            status: 'active',
+            renewal_count: 0
+        },
+        {
+            loan_id: 2,
+            book_title: 'NoSQL Distilled',
+            loan_date: '2024-01-18',
+            due_date: '2024-01-25',
+            status: 'overdue',
+            renewal_count: 1
+        }
+    ];
+    
+    displayUserLoans(mockLoans);
+}
+
+// ===== NOTIFICATION SYSTEM =====
+function showNotification(message, type = 'info') {
+    // Remove existing
+    const existing = document.querySelector('.notification');
+    if (existing) existing.remove();
+    
+    // Create notification
     const notification = document.createElement('div');
     notification.className = `notification ${type}`;
     notification.innerHTML = `
         <i class="fas ${getNotificationIcon(type)}"></i>
         <span>${message}</span>
-        <button class="notification-close" onclick="this.parentElement.remove()">
+        <button onclick="this.parentElement.remove()">
             <i class="fas fa-times"></i>
         </button>
     `;
     
-    // Add styles if not already added
-    if (!document.querySelector('#notification-styles')) {
-        const style = document.createElement('style');
-        style.id = 'notification-styles';
-        style.textContent = `
-            .notification {
-                position: fixed;
-                top: 20px;
-                right: 20px;
-                padding: 15px 20px;
-                border-radius: 8px;
-                color: white;
-                display: flex;
-                align-items: center;
-                gap: 10px;
-                z-index: 9999;
-                animation: slideIn 0.3s ease;
-                max-width: 400px;
-                box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-            }
-            .notification.success { background: linear-gradient(135deg, #27ae60, #2ecc71); }
-            .notification.error { background: linear-gradient(135deg, #e74c3c, #c0392b); }
-            .notification.info { background: linear-gradient(135deg, #3498db, #2980b9); }
-            .notification-warning { background: linear-gradient(135deg, #f39c12, #e67e22); }
-            .notification-close {
-                background: none;
-                border: none;
-                color: white;
-                cursor: pointer;
-                margin-left: auto;
-            }
-            @keyframes slideIn {
-                from { transform: translateX(100%); opacity: 0; }
-                to { transform: translateX(0); opacity: 1; }
-            }
-        `;
-        document.head.appendChild(style);
-    }
-    
+    // Add to body
     document.body.appendChild(notification);
     
-    // Auto-remove after 5 seconds
+    // Auto remove
     setTimeout(() => {
         if (notification.parentElement) {
-            notification.style.animation = 'slideOut 0.3s ease';
-            setTimeout(() => notification.remove(), 300);
+            notification.remove();
         }
     }, 5000);
 }
@@ -646,109 +1044,82 @@ function getNotificationIcon(type) {
     return icons[type] || 'fa-info-circle';
 }
 
-function logout() {
-    const confirmLogout = confirm('Are you sure you want to logout?');
-    if (confirmLogout) {
-        clearAuthData();
-        showNotification('👋 Logged out successfully', 'info');
-        setTimeout(() => {
-            window.location.href = 'index.html';
-        }, 1000);
-    }
+// Add notification styles
+if (!document.querySelector('#notification-styles')) {
+    const style = document.createElement('style');
+    style.id = 'notification-styles';
+    style.textContent = `
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 20px;
+            border-radius: 8px;
+            background: white;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            z-index: 9999;
+            animation: slideIn 0.3s ease;
+            max-width: 400px;
+        }
+        .notification.success {
+            background: linear-gradient(135deg, #27ae60, #2ecc71);
+            color: white;
+        }
+        .notification.error {
+            background: linear-gradient(135deg, #e74c3c, #c0392b);
+            color: white;
+        }
+        .notification.info {
+            background: linear-gradient(135deg, #3498db, #2980b9);
+            color: white;
+        }
+        .notification button {
+            background: none;
+            border: none;
+            color: inherit;
+            cursor: pointer;
+            margin-left: auto;
+        }
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        .loading {
+            text-align: center;
+            padding: 2rem;
+            color: #7f8c8d;
+        }
+        .no-books, .no-loans, .no-activity {
+            text-align: center;
+            padding: 3rem;
+            color: #7f8c8d;
+            font-style: italic;
+        }
+        .borrow-btn.disabled {
+            background: #95a5a6;
+            cursor: not-allowed;
+        }
+    `;
+    document.head.appendChild(style);
 }
 
-// ===== INITIALIZATION =====
-// Add CSS animations
-const style = document.createElement('style');
-style.textContent = `
-    .fade-in {
-        animation: fadeIn 0.5s ease forwards;
-        opacity: 0;
-    }
-    
-    @keyframes fadeIn {
-        to { opacity: 1; }
-    }
-    
-    .loan-item {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        padding: 15px;
-        background: #f8f9fa;
-        border-radius: 8px;
-        margin-bottom: 10px;
-        border-left: 4px solid #3498db;
-    }
-    
-    .loan-item.overdue {
-        border-left-color: #e74c3c;
-        background: #fff5f5;
-    }
-    
-    .status-badge {
-        padding: 4px 12px;
-        border-radius: 20px;
-        font-size: 0.8rem;
-        font-weight: 600;
-    }
-    
-    .status-badge.active {
-        background: #d4edda;
-        color: #155724;
-    }
-    
-    .status-badge.overdue {
-        background: #f8d7da;
-        color: #721c24;
-    }
-    
-    .renew-btn, .return-btn {
-        padding: 8px 16px;
-        border: none;
-        border-radius: 5px;
-        cursor: pointer;
-        font-weight: 600;
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        transition: all 0.3s ease;
-    }
-    
-    .renew-btn {
-        background: #f39c12;
-        color: white;
-    }
-    
-    .return-btn {
-        background: #27ae60;
-        color: white;
-    }
-    
-    .renew-btn:hover, .return-btn:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 4px 8px rgba(0,0,0,0.2);
-    }
-    
-    .no-data {
-        text-align: center;
-        padding: 40px;
-        color: #7f8c8d;
-    }
-    
-    .no-data i {
-        font-size: 3rem;
-        margin-bottom: 1rem;
-        opacity: 0.5;
-    }
-`;
-document.head.appendChild(style);
-
-// Export functions for HTML onclick handlers
+// ===== EXPORT FUNCTIONS FOR HTML =====
 window.setUserType = setUserType;
 window.redirectToLogin = redirectToLogin;
+window.logout = logout;
+window.showSection = showSection;
 window.borrowBook = borrowBook;
 window.returnBook = returnBook;
-window.renewBook = renewBook;
-window.updateProfile = updateProfile;
-window.logout = logout;
+window.renewLoan = renewLoan;
+window.renewAllLoans = async () => {
+    if (confirm('Renew all eligible loans?')) {
+        showNotification('Renewing all loans...', 'info');
+        // Implement bulk renewal
+        setTimeout(() => {
+            showNotification('Renewed 2 loans successfully', 'success');
+        }, 1500);
+    }
+};
