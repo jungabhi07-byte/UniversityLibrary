@@ -302,3 +302,91 @@ async function borrowBook(bookId) {
             showNotification('Book borrowed successfully!', 'success');
             // Refresh books
             await loadBooks();
+        } else {
+            showNotification(data.message || 'Failed to borrow book', 'error');
+        }
+    } catch (error) {
+        console.error('Borrow error:', error);
+        showNotification('Failed to borrow book', 'error');
+    }
+}
+
+// ===== UTILITY FUNCTIONS =====
+function logout() {
+    if (confirm('Are you sure you want to logout?')) {
+        localStorage.clear();
+        window.location.href = 'index.html';
+    }
+}
+
+function showNotification(message, type = 'info') {
+    // Remove existing notification
+    const existing = document.querySelector('.notification');
+    if (existing) existing.remove();
+    
+    // Create notification
+    const notification = document.createElement('div');
+    notification.className = `notification ${type}`;
+    notification.innerHTML = `
+        <i class="fas ${type === 'success' ? 'fa-check-circle' : 
+                       type === 'error' ? 'fa-exclamation-circle' : 
+                       'fa-info-circle'}"></i>
+        <span>${message}</span>
+        <button onclick="this.parentElement.remove()"><i class="fas fa-times"></i></button>
+    `;
+    
+    // Add styles if not exist
+    if (!document.querySelector('#notification-styles')) {
+        const style = document.createElement('style');
+        style.id = 'notification-styles';
+        style.textContent = `
+            .notification {
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                padding: 15px 20px;
+                border-radius: 8px;
+                background: white;
+                box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+                display: flex;
+                align-items: center;
+                gap: 10px;
+                z-index: 9999;
+                animation: slideIn 0.3s ease;
+            }
+            .notification.success {
+                background: #27ae60;
+                color: white;
+            }
+            .notification.error {
+                background: #e74c3c;
+                color: white;
+            }
+            .notification button {
+                background: none;
+                border: none;
+                color: inherit;
+                cursor: pointer;
+                margin-left: auto;
+            }
+            @keyframes slideIn {
+                from { transform: translateX(100%); opacity: 0; }
+                to { transform: translateX(0); opacity: 1; }
+            }
+        `;
+        document.head.appendChild(style);
+    }
+    
+    document.body.appendChild(notification);
+    
+    // Auto remove
+    setTimeout(() => {
+        if (notification.parentElement) {
+            notification.remove();
+        }
+    }, 5000);
+}
+
+// ===== EXPORT FUNCTIONS =====
+window.borrowBook = borrowBook;
+window.logout = logout;
