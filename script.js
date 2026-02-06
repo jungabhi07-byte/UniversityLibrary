@@ -1,5 +1,7 @@
 // Cloudflare Worker URL
 const API_BASE_URL = 'https://kulibrary-auth.budhathokiabhishek06.workers.dev';
+
+// Global variable for user type
 let currentUserType = 'student';
 
 // DOM Ready
@@ -12,28 +14,12 @@ document.addEventListener('DOMContentLoaded', function() {
         initializeLoginPage();
     }
     
-    // Auto-fill credentials on login page
-    if (window.location.pathname.includes('login.html')) {
-        setTimeout(fillTestCredentials, 500);
-    }
-    
     // Check if already logged in
     checkAuthStatus();
 });
 
 // Initialize Login Page
 function initializeLoginPage() {
-    // User type switching
-    const userTypeBtns = document.querySelectorAll('.user-type-btn');
-    userTypeBtns.forEach(btn => {
-        btn.addEventListener('click', function() {
-            userTypeBtns.forEach(b => b.classList.remove('active'));
-            this.classList.add('active');
-            currentUserType = this.dataset.type;
-            updateLoginForm(currentUserType);
-        });
-    });
-
     // Show password toggle
     const showPasswordBtn = document.getElementById('showPassword');
     if (showPasswordBtn) {
@@ -57,58 +43,10 @@ function initializeLoginPage() {
     if (loginForm) {
         loginForm.addEventListener('submit', handleLogin);
     }
-}
-
-// Update login form based on user type
-function updateLoginForm(userType) {
-    const title = document.getElementById('loginTitle');
-    const subtitle = document.getElementById('loginSubtitle');
-    const loginBtn = document.getElementById('loginBtn');
-
-    const messages = {
-        'student': {
-            title: 'Student Login',
-            subtitle: 'Login with student@ku.edu.np / Student@123'
-        },
-        'staff': {
-            title: 'Staff Login',
-            subtitle: 'Login with staff@ku.edu.np / Staff@123'
-        },
-        'admin': {
-            title: 'Admin Login',
-            subtitle: 'Login with admin@ku.edu.np / Admin@123'
-        }
-    };
-
-    if (title) title.textContent = messages[userType].title;
-    if (subtitle) subtitle.textContent = messages[userType].subtitle;
     
-    if (loginBtn) {
-        loginBtn.innerHTML = `<i class="fas fa-sign-in-alt"></i> Login as ${userType.charAt(0).toUpperCase() + userType.slice(1)}`;
-    }
-}
-
-// Auto-fill test credentials
-function fillTestCredentials() {
-    const emails = {
-        'student': 'student@ku.edu.np',
-        'staff': 'staff@ku.edu.np',
-        'admin': 'admin@ku.edu.np'
-    };
-    
-    const passwords = {
-        'student': 'Student@123',
-        'staff': 'Staff@123',
-        'admin': 'Admin@123'
-    };
-    
-    const usernameField = document.getElementById('username');
-    const passwordField = document.getElementById('password');
-    
-    if (usernameField && passwordField) {
-        usernameField.value = emails[currentUserType];
-        passwordField.value = passwords[currentUserType];
-        showNotification('Test credentials filled! Click Login', 'success');
+    // Set initial user type if not set by onclick
+    if (!window.currentUserType) {
+        window.currentUserType = 'student';
     }
 }
 
@@ -118,11 +56,12 @@ async function handleLogin(event) {
     
     const email = document.getElementById('username').value;
     const password = document.getElementById('password').value;
+    const userType = window.currentUserType || 'student';
     
     const formData = {
         email: email,
         password: password,
-        userType: currentUserType
+        userType: userType
     };
     
     console.log('🔐 Login attempt:', formData);
@@ -230,9 +169,13 @@ function showNotification(message, type = 'info') {
         document.body.appendChild(notification);
     }
     
+    const icon = type === 'success' ? 'fa-check-circle' : 
+                 type === 'error' ? 'fa-exclamation-circle' : 
+                 'fa-info-circle';
+    
     notification.innerHTML = `
         <div class="notification-content ${type}">
-            <i class="fas ${type === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle'}"></i>
+            <i class="fas ${icon}"></i>
             <span>${message}</span>
             <button onclick="this.parentElement.parentElement.style.display='none'">&times;</button>
         </div>
@@ -242,7 +185,9 @@ function showNotification(message, type = 'info') {
     
     // Auto-hide after 5 seconds
     setTimeout(() => {
-        notification.style.display = 'none';
+        if (notification) {
+            notification.style.display = 'none';
+        }
     }, 5000);
 }
 
@@ -265,6 +210,7 @@ async function fetchBooks() {
         }
     } catch (error) {
         console.error('Error fetching books:', error);
+        showNotification('Failed to load books', 'error');
         return [];
     }
 }
@@ -283,32 +229,8 @@ function logout() {
 }
 
 // Dashboard functions
-function initializeDashboard() {
-    const user = checkAuthStatus();
-    
-    if (!user) {
-        showNotification('Please login first', 'error');
-        setTimeout(() => {
-            window.location.href = 'login.html';
-        }, 1500);
-        return;
-    }
-    
-    // Display user info
-    document.getElementById('userName').textContent = user.name;
-    document.getElementById('userEmail').textContent = user.email;
-    document.getElementById('userType').textContent = user.userType;
-    
-    // Load books
-    loadBooks();
-    
-    // Load user's loans
-    loadUserLoans();
-}
-
-async function loadBooks() {
-    try {
-        const books = await fetchBooks();
+function loadBooks() {
+    fetchBooks().then(books => {
         const booksContainer = document.getElementById('booksList');
         
         if (books.length > 0 && booksContainer) {
@@ -316,38 +238,42 @@ async function loadBooks() {
                 <div class="book-card">
                     <h4>${book.title}</h4>
                     <p><strong>Author:</strong> ${book.authors || 'Unknown'}</p>
-                    <p><strong>ISBN:</strong> ${book.isbn}</p>
-                    <p><strong>Available:</strong> ${book.available_copies || book.total_copies} copies</p>
+                    <p><strong>ISBN:</strong> ${book.isbn || 'N/A'}</p>
+                    <p><strong>Year:</strong> ${book.year || 'N/A'}</p>
+                    <p><strong>Available:</strong> ${book.available_copies || book.total_copies || 1} copies</p>
                     <button onclick="borrowBook('${book.book_id}')" class="borrow-btn">
                         <i class="fas fa-book"></i> Borrow
                     </button>
                 </div>
             `).join('');
+        } else if (booksContainer) {
+            booksContainer.innerHTML = '<p>No books available</p>';
         }
-    } catch (error) {
-        console.error('Error loading books:', error);
-    }
+    });
 }
 
-async function loadUserLoans() {
-    try {
-        const token = localStorage.getItem('ku_token');
-        const response = await fetch(`${API_BASE_URL}/api/dashboard`, {
-            headers: {
-                'Authorization': `Bearer ${token}`
-            }
-        });
-        
-        const data = await response.json();
-        
-        if (data.success && data.data.active_loans) {
+function loadUserLoans() {
+    const user = JSON.parse(localStorage.getItem('ku_user') || '{}');
+    const token = localStorage.getItem('ku_token');
+    
+    if (!token) return;
+    
+    fetch(`${API_BASE_URL}/api/dashboard`, {
+        headers: {
+            'Authorization': `Bearer ${token}`
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success && data.data && data.data.active_loans) {
             const loansContainer = document.getElementById('activeLoans');
             if (loansContainer) {
                 if (data.data.active_loans.length > 0) {
                     loansContainer.innerHTML = data.data.active_loans.map(loan => `
                         <div class="loan-card">
                             <h4>${loan.title}</h4>
-                            <p>Due: ${loan.due_date}</p>
+                            <p><strong>Borrowed:</strong> ${loan.loan_date}</p>
+                            <p><strong>Due:</strong> ${loan.due_date}</p>
                             <p class="status ${loan.days_remaining < 0 ? 'overdue' : loan.days_remaining <= 3 ? 'due-soon' : 'on-time'}">
                                 ${loan.days_remaining < 0 ? 'OVERDUE' : loan.days_remaining <= 3 ? 'DUE SOON' : 'ON TIME'}
                             </p>
@@ -358,9 +284,10 @@ async function loadUserLoans() {
                 }
             }
         }
-    } catch (error) {
+    })
+    .catch(error => {
         console.error('Error loading loans:', error);
-    }
+    });
 }
 
 async function borrowBook(bookId) {
@@ -395,9 +322,9 @@ async function borrowBook(bookId) {
     }
 }
 
-// Export functions for dashboard
-if (typeof window !== 'undefined') {
-    window.logout = logout;
-    window.borrowBook = borrowBook;
-    window.redirectToLogin = redirectToLogin;
-}
+// Make functions globally available
+window.redirectToLogin = redirectToLogin;
+window.logout = logout;
+window.borrowBook = borrowBook;
+window.loadBooks = loadBooks;
+window.loadUserLoans = loadUserLoans;
