@@ -6,171 +6,62 @@
     <title>KU Library Management System</title>
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="icon" href="ku logo.jpeg" type="image/jpeg">
 </head>
 <body>
     <div class="container">
         <header class="main-header">
-            <div class="logo-container">
-                <img src="kulogo.jpeg" alt="KU Logo" class="logo" onerror="this.src='https://ku.edu.np/storage/gallery/logo.png'">
-                <div class="logo-text">
-                    <h1>Kathmandu University</h1>
-                    <h2>Digital Library Management System</h2>
-                    <p class="tagline">Gateway to Knowledge & Innovation</p>
-                </div>
-            </div>
-            <nav class="main-nav">
-                <a href="#about"><i class="fas fa-info-circle"></i> About</a>
-                <a href="#services"><i class="fas fa-book"></i> Services</a>
-                <a href="#contact"><i class="fas fa-envelope"></i> Contact</a>
-                <a href="login.html" class="login-btn-nav"><i class="fas fa-sign-in-alt"></i> Login</a>
+            <h1><i class="fas fa-book"></i> KU Library Management System</h1>
+            <nav>
+                <a href="login.html" class="login-btn-nav">
+                    <i class="fas fa-sign-in-alt"></i> Login
+                </a>
             </nav>
         </header>
 
         <main class="hero-section">
             <div class="hero-content">
-                <div class="hero-text">
-                    <h2>Welcome to KU Digital Library Portal</h2>
-                    <p class="subtitle">Access over 50,000+ academic resources, research papers, e-books, and digital collections</p>
+                <h2>Welcome to Kathmandu University Digital Library</h2>
+                <p class="subtitle">Access thousands of academic resources with secure authentication</p>
+                
+                <div class="login-options">
+                    <div class="login-card" onclick="redirectToLogin('student')">
+                        <div class="card-icon">
+                            <i class="fas fa-user-graduate"></i>
+                        </div>
+                        <h3>Student Portal</h3>
+                        <p>Access course materials, borrow e-books, view digital resources</p>
+                        <button class="card-btn">Login as Student</button>
+                    </div>
                     
-                    <div class="stats-container">
-                        <div class="stat-item">
-                            <i class="fas fa-book-open"></i>
-                            <h3>50,000+</h3>
-                            <p>Digital Books</p>
+                    <div class="login-card" onclick="redirectToLogin('staff')">
+                        <div class="card-icon">
+                            <i class="fas fa-chalkboard-teacher"></i>
                         </div>
-                        <div class="stat-item">
-                            <i class="fas fa-users"></i>
-                            <h3>10,000+</h3>
-                            <p>Active Users</p>
+                        <h3>Staff Portal</h3>
+                        <p>Manage library resources, process book requests, assist students</p>
+                        <button class="card-btn">Login as Staff</button>
+                    </div>
+                    
+                    <div class="login-card" onclick="redirectToLogin('admin')">
+                        <div class="card-icon">
+                            <i class="fas fa-user-cog"></i>
                         </div>
-                        <div class="stat-item">
-                            <i class="fas fa-newspaper"></i>
-                            <h3>500+</h3>
-                            <p>Research Journals</p>
-                        </div>
-                        <div class="stat-item">
-                            <i class="fas fa-clock"></i>
-                            <h3>24/7</h3>
-                            <p>Access Available</p>
-                        </div>
+                        <h3>Admin Portal</h3>
+                        <p>System administration, user management, database maintenance</p>
+                        <button class="card-btn">Login as Admin</button>
                     </div>
                 </div>
-
-                <div class="login-options-section">
-                    <h3>Select Your Login Portal</h3>
-                    <div class="login-options">
-                        <div class="login-card" onclick="redirectToLogin('student')">
-                            <div class="card-icon">
-                                <i class="fas fa-user-graduate"></i>
-                            </div>
-                            <h3>Student Portal</h3>
-                            <p>Access course materials, borrow e-books, view digital resources and track your reading history</p>
-                            <div class="card-features">
-                                <span><i class="fas fa-check"></i> E-Book Access</span>
-                                <span><i class="fas fa-check"></i> Borrow History</span>
-                                <span><i class="fas fa-check"></i> Course Materials</span>
-                            </div>
-                            <button class="card-btn">Login as Student</button>
-                        </div>
-                        
-                        <div class="login-card" onclick="redirectToLogin('staff')">
-                            <div class="card-icon">
-                                <i class="fas fa-chalkboard-teacher"></i>
-                            </div>
-                            <h3>Staff Portal</h3>
-                            <p>Manage library resources, process book requests, assist students and generate reports</p>
-                            <div class="card-features">
-                                <span><i class="fas fa-check"></i> Resource Management</span>
-                                <span><i class="fas fa-check"></i> Issue Tracking</span>
-                                <span><i class="fas fa-check"></i> Reports & Analytics</span>
-                            </div>
-                            <button class="card-btn">Login as Staff</button>
-                        </div>
-                        
-                        <div class="login-card" onclick="redirectToLogin('admin')">
-                            <div class="card-icon">
-                                <i class="fas fa-user-cog"></i>
-                            </div>
-                            <h3>Admin Portal</h3>
-                            <p>System administration, user management, database maintenance and system analytics</p>
-                            <div class="card-features">
-                                <span><i class="fas fa-check"></i> User Management</span>
-                                <span><i class="fas fa-check"></i> System Settings</span>
-                                <span><i class="fas fa-check"></i> Database Admin</span>
-                            </div>
-                            <button class="card-btn">Login as Admin</button>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="quick-links">
-                    <h3><i class="fas fa-link"></i> Quick Access</h3>
-                    <div class="links-grid">
-                        <a href="#catalog" class="quick-link">
-                            <i class="fas fa-search"></i>
-                            <span>Book Catalog</span>
-                        </a>
-                        <a href="#ebooks" class="quick-link">
-                            <i class="fas fa-tablet-alt"></i>
-                            <span>E-Books</span>
-                        </a>
-                        <a href="#journals" class="quick-link">
-                            <i class="fas fa-newspaper"></i>
-                            <span>Research Journals</span>
-                        </a>
-                        <a href="#thesis" class="quick-link">
-                            <i class="fas fa-graduation-cap"></i>
-                            <span>Thesis Database</span>
-                        </a>
-                        <a href="#hours" class="quick-link">
-                            <i class="fas fa-clock"></i>
-                            <span>Library Hours</span>
-                        </a>
-                        <a href="#help" class="quick-link">
-                            <i class="fas fa-question-circle"></i>
-                            <span>Help Desk</span>
-                        </a>
-                    </div>
+                
+                <div class="system-status">
+                    <span class="status-dot"></span>
+                    <span>Connecting to Cloudflare Worker...</span>
                 </div>
             </div>
         </main>
 
         <footer class="main-footer">
-            <div class="footer-content">
-                <div class="footer-section">
-                    <img src="kulogo.jpeg" alt="KU Logo" class="footer-logo" onerror="this.src='https://ku.edu.np/storage/gallery/logo.png'">
-                    <h4>Kathmandu University Library</h4>
-                    <p>Dhulikhel, Kavrepalanchok, Nepal</p>
-                    <p>Established 1991</p>
-                </div>
-                <div class="footer-section">
-                    <h4>Contact Information</h4>
-                    <p><i class="fas fa-phone"></i> +977-11-661399</p>
-                    <p><i class="fas fa-envelope"></i> library@ku.edu.np</p>
-                    <p><i class="fas fa-globe"></i> library.ku.edu.np</p>
-                </div>
-                <div class="footer-section">
-                    <h4>Quick Links</h4>
-                    <a href="#catalog">Online Catalog</a>
-                    <a href="#database">Digital Databases</a>
-                    <a href="#services">Library Services</a>
-                    <a href="#rules">Rules & Regulations</a>
-                </div>
-                <div class="footer-section">
-                    <h4>Connect With Us</h4>
-                    <div class="social-icons">
-                        <a href="#"><i class="fab fa-facebook"></i></a>
-                        <a href="#"><i class="fab fa-twitter"></i></a>
-                        <a href="#"><i class="fab fa-linkedin"></i></a>
-                        <a href="#"><i class="fab fa-instagram"></i></a>
-                    </div>
-                </div>
-            </div>
-            <div class="footer-bottom">
-                <p>&copy; 2024 Kathmandu University Library Management System. All rights reserved.</p>
-                <p>Version 3.0 | Developed by IT Department</p>
-            </div>
+            <p>&copy; 2024 Kathmandu University Library Management System</p>
+            <p>API: https://kulibrary-auth.budhathokiabhishek06.workers.dev</p>
         </footer>
     </div>
 
