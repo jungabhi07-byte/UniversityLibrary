@@ -20,13 +20,13 @@
             <div class="login-container">
                 <!-- User Type Selector -->
                 <div class="user-type-selector">
-                    <button class="user-type-btn active" data-type="student">
+                    <button class="user-type-btn active" data-type="student" onclick="setUserType('student')">
                         <i class="fas fa-user-graduate"></i> Student
                     </button>
-                    <button class="user-type-btn" data-type="staff">
+                    <button class="user-type-btn" data-type="staff" onclick="setUserType('staff')">
                         <i class="fas fa-chalkboard-teacher"></i> Staff
                     </button>
-                    <button class="user-type-btn" data-type="admin">
+                    <button class="user-type-btn" data-type="admin" onclick="setUserType('admin')">
                         <i class="fas fa-user-cog"></i> Admin
                     </button>
                 </div>
@@ -43,7 +43,7 @@
                             <i class="fas fa-user"></i> Email
                         </label>
                         <input type="text" id="username" name="username" required 
-                               placeholder="student@ku.edu.np">
+                               placeholder="student@ku.edu.np" value="student@ku.edu.np">
                     </div>
 
                     <div class="form-group">
@@ -52,7 +52,7 @@
                         </label>
                         <div class="password-container">
                             <input type="password" id="password" name="password" required 
-                                   placeholder="Student@123">
+                                   placeholder="Student@123" value="Student@123">
                             <button type="button" class="show-password" id="showPassword">
                                 <i class="fas fa-eye"></i>
                             </button>
@@ -66,17 +66,17 @@
                     <div class="test-credentials">
                         <h4><i class="fas fa-vial"></i> Test Credentials</h4>
                         <div class="credentials-grid">
-                            <div class="credential-card">
+                            <div class="credential-card student">
                                 <h5>Student</h5>
                                 <p><strong>Email:</strong> student@ku.edu.np</p>
                                 <p><strong>Password:</strong> Student@123</p>
                             </div>
-                            <div class="credential-card">
+                            <div class="credential-card staff">
                                 <h5>Staff</h5>
                                 <p><strong>Email:</strong> staff@ku.edu.np</p>
                                 <p><strong>Password:</strong> Staff@123</p>
                             </div>
-                            <div class="credential-card">
+                            <div class="credential-card admin">
                                 <h5>Admin</h5>
                                 <p><strong>Email:</strong> admin@ku.edu.np</p>
                                 <p><strong>Password:</strong> Admin@123</p>
@@ -92,6 +92,49 @@
         </main>
     </div>
 
+    <script>
+        // Set user type function
+        function setUserType(type) {
+            const buttons = document.querySelectorAll('.user-type-btn');
+            buttons.forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            
+            // Update form based on user type
+            const title = document.getElementById('loginTitle');
+            const subtitle = document.getElementById('loginSubtitle');
+            const loginBtn = document.getElementById('loginBtn');
+            
+            const emails = {
+                'student': 'student@ku.edu.np',
+                'staff': 'staff@ku.edu.np',
+                'admin': 'admin@ku.edu.np'
+            };
+            
+            const passwords = {
+                'student': 'Student@123',
+                'staff': 'Staff@123',
+                'admin': 'Admin@123'
+            };
+            
+            const messages = {
+                'student': { title: 'Student Login', subtitle: 'Login with student@ku.edu.np / Student@123' },
+                'staff': { title: 'Staff Login', subtitle: 'Login with staff@ku.edu.np / Staff@123' },
+                'admin': { title: 'Admin Login', subtitle: 'Login with admin@ku.edu.np / Admin@123' }
+            };
+            
+            // Update form
+            title.textContent = messages[type].title;
+            subtitle.textContent = messages[type].subtitle;
+            loginBtn.innerHTML = `<i class="fas fa-sign-in-alt"></i> Login as ${type.charAt(0).toUpperCase() + type.slice(1)}`;
+            
+            // Update input values
+            document.getElementById('username').value = emails[type];
+            document.getElementById('password').value = passwords[type];
+            
+            // Store current user type globally
+            window.currentUserType = type;
+        }
+    </script>
     <script src="script.js"></script>
 </body>
 </html>
