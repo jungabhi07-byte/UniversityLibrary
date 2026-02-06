@@ -3,169 +3,54 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>KU Library Management System | End Semester Project</title>
+    <title>KU Library Management System</title>
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="icon" type="image/x-icon" href="https://cdn-icons-png.flaticon.com/512/2232/2232688.png">
 </head>
-<body class="landing-container">
-    <!-- Navigation Header -->
-    <header class="landing-header">
-        <div class="nav-container">
-            <a href="#" class="logo">
-                <div class="logo-icon">
-                    <i class="fas fa-university"></i>
-                </div>
-                <div>
-                    <div class="logo-text">KU Library</div>
-                    <div class="logo-subtext">Management System</div>
-                </div>
-            </a>
-            
-            <nav>
-                <ul class="nav-links">
-                    <li><a href="#features">Features</a></li>
-                    <li><a href="#about">About</a></li>
-                    <li><a href="#demo">Demo</a></li>
-                    <li><a href="login.html" class="btn btn-secondary">Login</a></li>
-                </ul>
+<body>
+    <div class="container">
+        <header class="main-header">
+            <div class="logo-container">
+                <img src="https://upload.wikimedia.org/wikipedia/en/thumb/6/6d/Kathmandu_University_Logo.svg/1200px-Kathmandu_University_Logo.svg.png" alt="KU Logo" class="logo">
+                <h1>Kathmandu University Library Management System</h1>
+            </div>
+            <nav class="main-nav">
+                <a href="#about">About</a>
+                <a href="#services">Services</a>
+                <a href="#contact">Contact</a>
             </nav>
-        </div>
-    </header>
+        </header>
 
-    <!-- Hero Section -->
-    <main class="hero-section">
-        <div class="hero-content">
-            <div class="hero-badge">
-                <i class="fas fa-graduation-cap"></i>
-                <span>Third Semester End Semester Project</span>
+        <main class="hero-section">
+            <div class="hero-content">
+                <h2>Welcome to KU Digital Library</h2>
+                <p>Access thousands of academic resources, research papers, and digital collections</p>
+                <div class="login-options">
+                    <div class="login-card" onclick="redirectToLogin('student')">
+                        <i class="fas fa-user-graduate"></i>
+                        <h3>Student Login</h3>
+                        <p>Access your library account, borrow books, and view digital resources</p>
+                    </div>
+                    <div class="login-card" onclick="redirectToLogin('staff')">
+                        <i class="fas fa-chalkboard-teacher"></i>
+                        <h3>Staff Login</h3>
+                        <p>Manage library resources, assist students, and access administrative tools</p>
+                    </div>
+                    <div class="login-card" onclick="redirectToLogin('admin')">
+                        <i class="fas fa-user-cog"></i>
+                        <h3>Admin Login</h3>
+                        <p>System administration, user management, and analytics</p>
+                    </div>
+                </div>
             </div>
-            
-            <h1 class="hero-title">
-                Modern Library Management<br>
-                <span class="text-gradient">System</span>
-            </h1>
-            
-            <p class="hero-description">
-                A comprehensive, scalable, and user-friendly library management solution 
-                built with modern web technologies. Designed to streamline library operations 
-                and enhance user experience.
-            </p>
-            
-            <div class="hero-cta">
-                <a href="login.html" class="btn btn-primary btn-lg">
-                    <i class="fas fa-sign-in-alt"></i>
-                    <span>Launch Application</span>
-                </a>
-                <a href="#demo" class="btn btn-secondary btn-lg">
-                    <i class="fas fa-play-circle"></i>
-                    <span>View Demo</span>
-                </a>
-            </div>
-        </div>
+        </main>
 
-        <!-- Statistics -->
-        <div class="stats-section">
-            <div class="stat-card">
-                <div class="stat-icon">
-                    <i class="fas fa-book"></i>
-                </div>
-                <div class="stat-number" data-count="25000">0</div>
-                <div class="stat-label">Digital Books</div>
-            </div>
-            
-            <div class="stat-card">
-                <div class="stat-icon">
-                    <i class="fas fa-users"></i>
-                </div>
-                <div class="stat-number" data-count="15000">0</div>
-                <div class="stat-label">Active Users</div>
-            </div>
-            
-            <div class="stat-card">
-                <div class="stat-icon">
-                    <i class="fas fa-exchange-alt"></i>
-                </div>
-                <div class="stat-number" data-count="8500">0</div>
-                <div class="stat-label">Monthly Transactions</div>
-            </div>
-            
-            <div class="stat-card">
-                <div class="stat-icon">
-                    <i class="fas fa-chart-line"></i>
-                </div>
-                <div class="stat-number" data-count="99.9">0</div>
-                <div class="stat-label">Uptime %</div>
-            </div>
-        </div>
-    </main>
-
-    <!-- Features Section -->
-    <section id="features" class="section-padding">
-        <div class="container">
-            <h2 class="section-title">System Features</h2>
-            <p class="section-subtitle">Comprehensive features designed for modern library management</p>
-            
-            <div class="features-grid">
-                <!-- Feature cards would go here -->
-            </div>
-        </div>
-    </section>
-
-    <!-- Footer -->
-    <footer class="footer">
-        <div class="container">
-            <div class="footer-content">
-                <div class="footer-section">
-                    <h3>KU Library System</h3>
-                    <p>Third Semester End Semester Project</p>
-                    <p>Computer Science & Engineering</p>
-                </div>
-                
-                <div class="footer-section">
-                    <h4>Developer</h4>
-                    <p>Budhathoki Abhishek</p>
-                    <p>Kathmandu University</p>
-                </div>
-                
-                <div class="footer-section">
-                    <h4>Technologies Used</h4>
-                    <p>HTML5, CSS3, JavaScript</p>
-                    <p>Cloudflare Workers, GitHub Pages</p>
-                </div>
-            </div>
-            
-            <div class="footer-bottom">
-                <p>&copy; 2024 KU Library Management System. All rights reserved.</p>
-                <p>Project Submission for Third Semester Examination</p>
-            </div>
-        </div>
-    </footer>
+        <footer class="main-footer">
+            <p>&copy; 2024 Kathmandu University Library. All rights reserved.</p>
+            <p>Dhulikhel, Kavrepalanchok, Nepal</p>
+        </footer>
+    </div>
 
     <script src="script.js"></script>
-    <script>
-        // Animate statistics counters
-        function animateCounter(element, start, end, duration) {
-            let startTimestamp = null;
-            const step = (timestamp) => {
-                if (!startTimestamp) startTimestamp = timestamp;
-                const progress = Math.min((timestamp - startTimestamp) / duration, 1);
-                element.innerHTML = Math.floor(progress * (end - start) + start);
-                if (progress < 1) {
-                    window.requestAnimationFrame(step);
-                }
-            };
-            window.requestAnimationFrame(step);
-        }
-
-        // Initialize counters when in view
-        document.addEventListener('DOMContentLoaded', function() {
-            const counters = document.querySelectorAll('.stat-number');
-            counters.forEach(counter => {
-                const target = parseInt(counter.getAttribute('data-count'));
-                animateCounter(counter, 0, target, 2000);
-            });
-        });
-    </script>
 </body>
 </html>
