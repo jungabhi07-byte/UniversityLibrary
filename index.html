@@ -7,6 +7,59 @@
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="icon" href="ku logo.jpeg" type="image/jpeg">
+    <style>
+        /* Additional styles for smaller logos */
+        .logo {
+            height: 40px;
+            width: auto;
+        }
+        
+        .footer-logo {
+            height: 35px;
+            width: auto;
+            margin-bottom: 10px;
+        }
+        
+        .footer-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            flex-wrap: wrap;
+            gap: 30px;
+            margin-bottom: 20px;
+        }
+        
+        .footer-section {
+            flex: 1;
+            min-width: 250px;
+        }
+        
+        .footer-section h4 {
+            color: white;
+            margin-bottom: 15px;
+            font-size: 1.1rem;
+        }
+        
+        .footer-section p {
+            color: rgba(255, 255, 255, 0.8);
+            margin: 8px 0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .footer-bottom {
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            padding-top: 15px;
+            text-align: center;
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 0.9rem;
+        }
+        
+        .footer-bottom p {
+            margin: 5px 0;
+        }
+    </style>
 </head>
 <body>
     <div class="container">
@@ -84,19 +137,24 @@
         <footer class="main-footer">
             <div class="footer-content">
                 <div class="footer-section">
-                    <img src="kulogo.jpeg" alt="KU Logo" class="footer-logo">
-                    <h4>Kathmandu University Central Library</h4>
+                    <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 15px;">
+                        <img src="ku logo.jpeg" alt="KU Logo" class="footer-logo">
+                        <span style="color: white; font-weight: bold;">KU Logo</span>
+                    </div>
+                    <p><strong>Kathmandu University Central Library</strong></p>
                     <p>Dhulikhel, Nepal</p>
                 </div>
+                
                 <div class="footer-section">
                     <h4>Contact</h4>
                     <p><i class="fas fa-phone"></i> +977-11-661399</p>
                     <p><i class="fas fa-envelope"></i> library@ku.edu.np</p>
                 </div>
             </div>
+            
             <div class="footer-bottom">
                 <p>&copy; 2026 Kathmandu University Library Management System</p>
-                <p>Designed and powered by &copy; Himalayan Dragons </p> 
+                <p>Designed and powered by &copy; Himalayan Dragons</p>
             </div>
         </footer>
     </div>
