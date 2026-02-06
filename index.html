@@ -6,11 +6,18 @@
     <title>KU Library Management System</title>
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="icon" href="ku logo.jpeg" type="image/jpeg">
 </head>
 <body>
     <div class="container">
         <header class="main-header">
-            <h1><i class="fas fa-book"></i> KU Library Management System</h1>
+            <div class="logo-container">
+                <img src="kulogo.jpeg" alt="KU Logo" class="logo">
+                <div class="logo-text">
+                    <h1>Kathmandu University</h1>
+                    <h2>Library Management System</h2>
+                </div>
+            </div>
             <a href="login.html" class="login-btn-nav">
                 <i class="fas fa-sign-in-alt"></i> Login
             </a>
@@ -18,8 +25,8 @@
 
         <main class="hero-section">
             <div class="hero-content">
-                <h2>Welcome to Kathmandu University Digital Library</h2>
-                <p class="subtitle">Access thousands of academic resources with secure authentication</p>
+                <h2>Welcome to KU Digital Library Portal</h2>
+                <p class="subtitle">Access thousands of academic resources</p>
                 
                 <div class="login-options">
                     <div class="login-card" onclick="redirectToLogin('student')">
@@ -49,12 +56,48 @@
                         <button class="card-btn">Login as Admin</button>
                     </div>
                 </div>
+                
+                <div class="quick-links">
+                    <h3><i class="fas fa-link"></i> Quick Links</h3>
+                    <div class="links-grid">
+                        <a href="#catalog" class="quick-link">
+                            <i class="fas fa-search"></i>
+                            <span>Book Catalog</span>
+                        </a>
+                        <a href="#ebooks" class="quick-link">
+                            <i class="fas fa-tablet-alt"></i>
+                            <span>E-Books</span>
+                        </a>
+                        <a href="#journals" class="quick-link">
+                            <i class="fas fa-newspaper"></i>
+                            <span>Research Journals</span>
+                        </a>
+                        <a href="#thesis" class="quick-link">
+                            <i class="fas fa-graduation-cap"></i>
+                            <span>Thesis Database</span>
+                        </a>
+                    </div>
+                </div>
             </div>
         </main>
 
         <footer class="main-footer">
-            <p>&copy; 2024 Kathmandu University Library Management System</p>
-            <p>API: https://kulibrary-auth.budhathokiabhishek06.workers.dev</p>
+            <div class="footer-content">
+                <div class="footer-section">
+                    <img src="kulogo.jpeg" alt="KU Logo" class="footer-logo">
+                    <h4>Kathmandu University Central Library</h4>
+                    <p>Dhulikhel, Nepal</p>
+                </div>
+                <div class="footer-section">
+                    <h4>Contact</h4>
+                    <p><i class="fas fa-phone"></i> +977-11-661399</p>
+                    <p><i class="fas fa-envelope"></i> library@ku.edu.np</p>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2026 Kathmandu University Library Management System</p>
+                <p>Designed and powered by &copy; Himalayan Dragons </p> 
+            </div>
         </footer>
     </div>
 
