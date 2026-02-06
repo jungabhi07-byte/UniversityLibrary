@@ -1,92 +1,28 @@
-// Configuration
-const API_CONFIG = {
-    development: {
-        baseURL: 'http://localhost:3001',
-        endpoints: {
-            login: '/api/login',
-            books: '/api/books',
-            dashboard: '/api/dashboard',
-            health: '/api/health',
-            borrow: '/api/books/{id}/borrow',
-            return: '/api/loans/{id}/return',
-            members: '/api/members'
-        }
-    },
-    production: {
-        baseURL: 'https://kulibrary-auth.budhathokiabhishek06.workers.dev',
-        endpoints: {
-            login: '/api/login',
-            books: '/api/books',
-            dashboard: '/api/dashboard'
-        }
-    }
-};
-
-// Select environment - USE DEVELOPMENT FOR LOCAL MYSQL
-const ENVIRONMENT = 'development'; // Change this to 'production' for Cloudflare Worker
-const API_BASE_URL = API_CONFIG[ENVIRONMENT].baseURL;
+// Cloudflare Worker URL
+const API_BASE_URL = 'https://kulibrary-auth.budhathokiabhishek06.workers.dev';
 let currentUserType = 'student';
-
-// Global state
-let currentUser = null;
-let authToken = null;
 
 // DOM Ready
 document.addEventListener('DOMContentLoaded', function() {
-    console.log('🚀 KU Library Frontend Loaded');
-    console.log(`🔗 API Base URL: ${API_BASE_URL}`);
-    console.log(`🌐 Environment: ${ENVIRONMENT}`);
+    console.log('🚀 KU Library System Loaded');
+    console.log(`🔗 API: ${API_BASE_URL}`);
     
-    // Test connection on load
-    testConnection();
-    
+    // Check if on login page
     if (document.getElementById('loginForm')) {
         initializeLoginPage();
     }
     
+    // Auto-fill credentials on login page
+    if (window.location.pathname.includes('login.html')) {
+        setTimeout(fillTestCredentials, 500);
+    }
+    
+    // Check if already logged in
     checkAuthStatus();
 });
 
-// Test API connection
-async function testConnection() {
-    try {
-        const response = await fetch(`${API_BASE_URL}/api/health`);
-        if (response.ok) {
-            const data = await response.json();
-            console.log('✅ Backend Connection:', data);
-            
-            // Update status indicator if exists
-            const statusIndicator = document.querySelector('.system-status');
-            if (statusIndicator) {
-                statusIndicator.innerHTML = `
-                    <span class="status-dot online"></span>
-                    <span>MySQL Connected (${data.tables_count} tables)</span>
-                `;
-            }
-            
-            return true;
-        }
-    } catch (error) {
-        console.error('❌ Backend Connection Failed:', error);
-        
-        // Update status indicator if exists
-        const statusIndicator = document.querySelector('.system-status');
-        if (statusIndicator) {
-            statusIndicator.innerHTML = `
-                <span class="status-dot offline"></span>
-                <span>Backend Offline - Start backend server</span>
-            `;
-        }
-        
-        showNotification('Backend server not running. Start: cd backend && npm run dev', 'error');
-        return false;
-    }
-}
-
 // Initialize Login Page
 function initializeLoginPage() {
-    console.log('🔐 Initializing login page...');
-    
     // User type switching
     const userTypeBtns = document.querySelectorAll('.user-type-btn');
     userTypeBtns.forEach(btn => {
@@ -121,38 +57,6 @@ function initializeLoginPage() {
     if (loginForm) {
         loginForm.addEventListener('submit', handleLogin);
     }
-    
-    // Auto-fill test credentials button
-    const testCredBtn = document.createElement('button');
-    testCredBtn.type = 'button';
-    testCredBtn.className = 'test-cred-btn';
-    testCredBtn.innerHTML = '<i class="fas fa-vial"></i> Fill Test Credentials';
-    testCredBtn.onclick = fillTestCredentials;
-    
-    const formHeader = document.querySelector('.form-header');
-    if (formHeader) {
-        formHeader.appendChild(testCredBtn);
-    }
-}
-
-// Fill test credentials
-function fillTestCredentials() {
-    const emailMap = {
-        'student': 'student@ku.edu.np',
-        'staff': 'staff@ku.edu.np',
-        'admin': 'admin@ku.edu.np'
-    };
-    
-    const passwordMap = {
-        'student': 'Student@123',
-        'staff': 'Staff@123',
-        'admin': 'Admin@123'
-    };
-    
-    document.getElementById('username').value = emailMap[currentUserType] || '';
-    document.getElementById('password').value = passwordMap[currentUserType] || '';
-    
-    showNotification(`Filled ${currentUserType} test credentials`, 'success');
 }
 
 // Update login form based on user type
@@ -161,131 +65,116 @@ function updateLoginForm(userType) {
     const subtitle = document.getElementById('loginSubtitle');
     const loginBtn = document.getElementById('loginBtn');
 
-    switch(userType) {
-        case 'student':
-            if (title) title.textContent = 'Student Login';
-            if (subtitle) subtitle.textContent = 'Login with your KU email to access library services';
-            break;
-        case 'staff':
-            if (title) title.textContent = 'Staff Login';
-            if (subtitle) subtitle.textContent = 'Access library management system';
-            break;
-        case 'admin':
-            if (title) title.textContent = 'Admin Login';
-            if (subtitle) subtitle.textContent = 'System administration and management';
-            break;
-    }
+    const messages = {
+        'student': {
+            title: 'Student Login',
+            subtitle: 'Login with student@ku.edu.np / Student@123'
+        },
+        'staff': {
+            title: 'Staff Login',
+            subtitle: 'Login with staff@ku.edu.np / Staff@123'
+        },
+        'admin': {
+            title: 'Admin Login',
+            subtitle: 'Login with admin@ku.edu.np / Admin@123'
+        }
+    };
 
-    // Update login button
+    if (title) title.textContent = messages[userType].title;
+    if (subtitle) subtitle.textContent = messages[userType].subtitle;
+    
     if (loginBtn) {
         loginBtn.innerHTML = `<i class="fas fa-sign-in-alt"></i> Login as ${userType.charAt(0).toUpperCase() + userType.slice(1)}`;
+    }
+}
+
+// Auto-fill test credentials
+function fillTestCredentials() {
+    const emails = {
+        'student': 'student@ku.edu.np',
+        'staff': 'staff@ku.edu.np',
+        'admin': 'admin@ku.edu.np'
+    };
+    
+    const passwords = {
+        'student': 'Student@123',
+        'staff': 'Staff@123',
+        'admin': 'Admin@123'
+    };
+    
+    const usernameField = document.getElementById('username');
+    const passwordField = document.getElementById('password');
+    
+    if (usernameField && passwordField) {
+        usernameField.value = emails[currentUserType];
+        passwordField.value = passwords[currentUserType];
+        showNotification('Test credentials filled! Click Login', 'success');
     }
 }
 
 // Handle login
 async function handleLogin(event) {
     event.preventDefault();
-
+    
     const email = document.getElementById('username').value;
     const password = document.getElementById('password').value;
     
-    // Auto-correct email for test users
-    const emailCorrections = {
-        'student': 'student@ku.edu.np',
-        'staff': 'staff@ku.edu.np', 
-        'admin': 'admin@ku.edu.np'
-    };
-    
-    const finalEmail = emailCorrections[currentUserType] || email;
-
     const formData = {
-        email: finalEmail,
+        email: email,
         password: password,
         userType: currentUserType
     };
-
+    
     console.log('🔐 Login attempt:', formData);
-
+    
     // Show loading
     const loginBtn = document.getElementById('loginBtn');
     const originalText = loginBtn.innerHTML;
-    loginBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Connecting to MySQL Database...';
+    loginBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Logging in...';
     loginBtn.disabled = true;
-
+    
     try {
         const response = await fetch(`${API_BASE_URL}/api/login`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'Accept': 'application/json'
             },
             body: JSON.stringify(formData)
         });
-
+        
         const data = await response.json();
         console.log('📥 Login response:', data);
-
-        if (response.ok && data.success) {
+        
+        if (data.success) {
             showNotification(`✅ Login successful! Welcome ${data.user.name}`, 'success');
             
             // Store authentication data
-            authToken = data.token;
-            currentUser = data.user;
-            
-            localStorage.setItem('ku_library_token', data.token);
-            localStorage.setItem('ku_library_user', JSON.stringify(data.user));
-            localStorage.setItem('ku_library_auth_time', Date.now().toString());
+            localStorage.setItem('ku_token', data.token);
+            localStorage.setItem('ku_user', JSON.stringify(data.user));
+            localStorage.setItem('ku_auth_time', Date.now().toString());
             
             // Store current loans if available
             if (data.current_loans) {
-                localStorage.setItem('ku_current_loans', JSON.stringify(data.current_loans));
+                localStorage.setItem('ku_loans', JSON.stringify(data.current_loans));
             }
-
-            // Show database connection success
-            showNotification(`📊 Connected to MySQL: LibraryDB with ${data.current_loans?.length || 0} active loans`, 'info');
-
-            // Redirect to dashboard after delay
+            
+            // Redirect to dashboard after 1.5 seconds
             setTimeout(() => {
-                redirectToDashboard(data.user.userType);
-            }, 2000);
-
+                window.location.href = 'dashboard.html';
+            }, 1500);
+            
         } else {
-            throw new Error(data.message || 'Login failed. Check credentials.');
+            throw new Error(data.message || 'Login failed');
         }
-
+        
     } catch (error) {
         console.error('❌ Login error:', error);
-        
-        // Try fallback to Cloudflare Worker
-        if (ENVIRONMENT === 'development' && error.message.includes('Failed to fetch')) {
-            showNotification('Local backend not responding. Trying Cloudflare Worker...', 'warning');
-            
-            try {
-                const fallbackResponse = await fetch('https://kulibrary-auth.budhathokiabhishek06.workers.dev/api/login', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify(formData)
-                });
-                
-                const fallbackData = await fallbackResponse.json();
-                
-                if (fallbackResponse.ok && fallbackData.success) {
-                    showNotification('⚠️ Using Cloudflare Worker (Demo Mode)', 'warning');
-                    localStorage.setItem('ku_library_demo', 'true');
-                    localStorage.setItem('ku_library_user', JSON.stringify(fallbackData.user));
-                    setTimeout(() => {
-                        redirectToDashboard(fallbackData.user.userType);
-                    }, 1500);
-                    return;
-                }
-            } catch (fallbackError) {
-                console.error('Fallback also failed:', fallbackError);
-            }
-        }
-        
         showNotification(`❌ ${error.message}`, 'error');
+        
+        // Show help for common errors
+        if (error.message.includes('not found') || error.message.includes('Invalid')) {
+            showNotification('💡 Tip: Use test emails with correct passwords', 'info');
+        }
         
     } finally {
         loginBtn.innerHTML = originalText;
@@ -293,157 +182,222 @@ async function handleLogin(event) {
     }
 }
 
-// Redirect to dashboard
-function redirectToDashboard(userType) {
-    console.log(`🔄 Redirecting to dashboard as ${userType}`);
-    
-    // You can create different dashboards for different user types
-    const dashboards = {
-        'student': 'dashboard.html',
-        'staff': 'dashboard.html', 
-        'admin': 'dashboard.html'
-    };
-    
-    const dashboardPage = dashboards[userType] || 'dashboard.html';
-    window.location.href = dashboardPage;
-}
-
 // Check authentication status
 function checkAuthStatus() {
-    const token = localStorage.getItem('ku_library_token');
-    const authTime = localStorage.getItem('ku_library_auth_time');
-    const userStr = localStorage.getItem('ku_library_user');
+    const token = localStorage.getItem('ku_token');
+    const authTime = localStorage.getItem('ku_auth_time');
+    const userStr = localStorage.getItem('ku_user');
     
     if (!token || !authTime || !userStr) {
-        console.log('🔓 No active session found');
         return null;
     }
     
     // Check if token is expired (24 hours)
     const hoursSinceLogin = (Date.now() - parseInt(authTime)) / (1000 * 60 * 60);
     if (hoursSinceLogin > 24) {
-        console.log('⌛ Session expired');
-        localStorage.removeItem('ku_library_token');
-        localStorage.removeItem('ku_library_user');
-        localStorage.removeItem('ku_library_auth_time');
+        localStorage.removeItem('ku_token');
+        localStorage.removeItem('ku_user');
+        localStorage.removeItem('ku_auth_time');
         return null;
     }
     
     try {
-        const user = JSON.parse(userStr);
-        console.log(`👤 Active session: ${user.name} (${user.userType})`);
-        
-        // Auto-redirect if on login page
-        if (window.location.pathname.includes('login.html')) {
-            console.log('🔄 Auto-redirecting to dashboard...');
-            setTimeout(() => redirectToDashboard(user.userType), 1000);
-        }
-        
-        return user;
+        return JSON.parse(userStr);
     } catch (e) {
-        console.error('Error parsing user data:', e);
         return null;
     }
 }
 
-// Get auth headers for API calls
-function getAuthHeaders() {
-    const token = localStorage.getItem('ku_library_token');
-    return {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`
-    };
-}
-
-// Logout function
-function logout() {
-    localStorage.removeItem('ku_library_token');
-    localStorage.removeItem('ku_library_user');
-    localStorage.removeItem('ku_library_auth_time');
-    localStorage.removeItem('ku_current_loans');
-    localStorage.removeItem('ku_library_demo');
-    
-    currentUser = null;
-    authToken = null;
-    
-    showNotification('Logged out successfully', 'success');
-    setTimeout(() => {
-        window.location.href = 'index.html';
-    }, 1500);
+// Auto-redirect if already logged in
+if (window.location.pathname.includes('login.html')) {
+    const user = checkAuthStatus();
+    if (user) {
+        console.log('🔄 Auto-redirecting to dashboard...');
+        setTimeout(() => {
+            window.location.href = 'dashboard.html';
+        }, 1000);
+    }
 }
 
 // Utility Functions
 function showNotification(message, type = 'info') {
-    console.log(`📢 ${type.toUpperCase()}: ${message}`);
-    
-    const notification = document.getElementById('notification');
-    const messageEl = document.getElementById('notificationMessage');
-    const icon = document.getElementById('notificationIcon');
-    
-    if (notification && messageEl && icon) {
-        messageEl.textContent = message;
-        notification.className = `notification ${type}`;
-        
-        // Set icon based on type
-        const icons = {
-            'success': 'fa-check-circle',
-            'error': 'fa-exclamation-circle',
-            'warning': 'fa-exclamation-triangle',
-            'info': 'fa-info-circle'
-        };
-        
-        icon.className = `fas ${icons[type] || 'fa-info-circle'}`;
-        notification.style.display = 'flex';
-        
-        // Auto-hide
-        setTimeout(hideNotification, 5000);
-    } else {
-        alert(message);
+    // Create notification element if it doesn't exist
+    let notification = document.getElementById('notification');
+    if (!notification) {
+        notification = document.createElement('div');
+        notification.id = 'notification';
+        notification.className = 'notification';
+        document.body.appendChild(notification);
     }
-}
-
-function hideNotification() {
-    const notification = document.getElementById('notification');
-    if (notification) {
+    
+    notification.innerHTML = `
+        <div class="notification-content ${type}">
+            <i class="fas ${type === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle'}"></i>
+            <span>${message}</span>
+            <button onclick="this.parentElement.parentElement.style.display='none'">&times;</button>
+        </div>
+    `;
+    
+    notification.style.display = 'block';
+    
+    // Auto-hide after 5 seconds
+    setTimeout(() => {
         notification.style.display = 'none';
-    }
+    }, 5000);
 }
 
-// For index.html - redirect to login
+// Redirect to login from index.html
 function redirectToLogin(userType) {
     localStorage.setItem('preferred_user_type', userType);
     window.location.href = 'login.html';
 }
 
 // Fetch books from API
-async function fetchBooks(search = '') {
+async function fetchBooks() {
     try {
-        const url = `${API_BASE_URL}/api/books${search ? `?search=${encodeURIComponent(search)}` : ''}`;
-        const response = await fetch(url);
+        const response = await fetch(`${API_BASE_URL}/api/books`);
         const data = await response.json();
         
         if (data.success) {
             return data.data;
         } else {
-            throw new Error(data.message);
+            throw new Error('Failed to fetch books');
         }
     } catch (error) {
         console.error('Error fetching books:', error);
-        showNotification('Failed to load books', 'error');
         return [];
     }
 }
 
-// Export functions for dashboard page
+// Logout function
+function logout() {
+    localStorage.removeItem('ku_token');
+    localStorage.removeItem('ku_user');
+    localStorage.removeItem('ku_auth_time');
+    localStorage.removeItem('ku_loans');
+    
+    showNotification('Logged out successfully', 'success');
+    setTimeout(() => {
+        window.location.href = 'index.html';
+    }, 1000);
+}
+
+// Dashboard functions
+function initializeDashboard() {
+    const user = checkAuthStatus();
+    
+    if (!user) {
+        showNotification('Please login first', 'error');
+        setTimeout(() => {
+            window.location.href = 'login.html';
+        }, 1500);
+        return;
+    }
+    
+    // Display user info
+    document.getElementById('userName').textContent = user.name;
+    document.getElementById('userEmail').textContent = user.email;
+    document.getElementById('userType').textContent = user.userType;
+    
+    // Load books
+    loadBooks();
+    
+    // Load user's loans
+    loadUserLoans();
+}
+
+async function loadBooks() {
+    try {
+        const books = await fetchBooks();
+        const booksContainer = document.getElementById('booksList');
+        
+        if (books.length > 0 && booksContainer) {
+            booksContainer.innerHTML = books.map(book => `
+                <div class="book-card">
+                    <h4>${book.title}</h4>
+                    <p><strong>Author:</strong> ${book.authors || 'Unknown'}</p>
+                    <p><strong>ISBN:</strong> ${book.isbn}</p>
+                    <p><strong>Available:</strong> ${book.available_copies || book.total_copies} copies</p>
+                    <button onclick="borrowBook('${book.book_id}')" class="borrow-btn">
+                        <i class="fas fa-book"></i> Borrow
+                    </button>
+                </div>
+            `).join('');
+        }
+    } catch (error) {
+        console.error('Error loading books:', error);
+    }
+}
+
+async function loadUserLoans() {
+    try {
+        const token = localStorage.getItem('ku_token');
+        const response = await fetch(`${API_BASE_URL}/api/dashboard`, {
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        });
+        
+        const data = await response.json();
+        
+        if (data.success && data.data.active_loans) {
+            const loansContainer = document.getElementById('activeLoans');
+            if (loansContainer) {
+                if (data.data.active_loans.length > 0) {
+                    loansContainer.innerHTML = data.data.active_loans.map(loan => `
+                        <div class="loan-card">
+                            <h4>${loan.title}</h4>
+                            <p>Due: ${loan.due_date}</p>
+                            <p class="status ${loan.days_remaining < 0 ? 'overdue' : loan.days_remaining <= 3 ? 'due-soon' : 'on-time'}">
+                                ${loan.days_remaining < 0 ? 'OVERDUE' : loan.days_remaining <= 3 ? 'DUE SOON' : 'ON TIME'}
+                            </p>
+                        </div>
+                    `).join('');
+                } else {
+                    loansContainer.innerHTML = '<p>No active loans</p>';
+                }
+            }
+        }
+    } catch (error) {
+        console.error('Error loading loans:', error);
+    }
+}
+
+async function borrowBook(bookId) {
+    const token = localStorage.getItem('ku_token');
+    
+    if (!token) {
+        showNotification('Please login first', 'error');
+        return;
+    }
+    
+    try {
+        const response = await fetch(`${API_BASE_URL}/api/books/${bookId}/borrow`, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            }
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            showNotification('Book borrowed successfully!', 'success');
+            loadBooks(); // Refresh books list
+            loadUserLoans(); // Refresh loans list
+        } else {
+            showNotification(data.message || 'Failed to borrow book', 'error');
+        }
+    } catch (error) {
+        console.error('Error borrowing book:', error);
+        showNotification('Error borrowing book', 'error');
+    }
+}
+
+// Export functions for dashboard
 if (typeof window !== 'undefined') {
-    window.KULibrary = {
-        API_BASE_URL,
-        getAuthHeaders,
-        logout,
-        fetchBooks,
-        showNotification,
-        hideNotification,
-        getCurrentUser: () => currentUser || checkAuthStatus(),
-        isAuthenticated: () => !!localStorage.getItem('ku_library_token')
-    };
+    window.logout = logout;
+    window.borrowBook = borrowBook;
+    window.redirectToLogin = redirectToLogin;
 }
