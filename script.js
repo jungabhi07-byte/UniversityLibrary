@@ -1,5 +1,5 @@
 // ===== CONFIGURATION =====
-const API_BASE_URL = 'http://localhost:3000'; // Your Node.js server
+const API_BASE_URL = 'https://kulibrary-auth.budhathokiabhishek06.workers.dev/'; // Your Node.js server
 let currentUser = null;
 
 // ===== DOM READY =====
